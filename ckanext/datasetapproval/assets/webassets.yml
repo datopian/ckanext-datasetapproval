@@ -1,0 +1,14 @@
+# datasetapproval-js:
+#   filter: rjsmin
+#   output: ckanext-datasetapproval/%(version)s-datasetapproval.js
+#   contents:
+#     - js/datasetapproval.js
+#   extra:
+#     preload:
+#       - base/main
+
+# datasetapproval-css:
+#   filter: cssrewrite
+#   output: ckanext-datasetapproval/%(version)s-datasetapproval.css
+#   contents:
+#     - css/datasetapproval.css

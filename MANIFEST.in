@@ -1,0 +1,5 @@
+include README.rst
+include LICENSE
+include requirements.txt
+recursive-include ckanext/datasetapproval *.html *.json *.js *.less *.css *.mo *.yml
+recursive-include ckanext/datasetapproval/migration *.ini *.py *.mako

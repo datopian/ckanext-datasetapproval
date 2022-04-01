@@ -1,0 +1,70 @@
+{% extends "package/read_base.html" %}
+
+{% block primary_content_inner %}
+  {{ super() }}
+
+  {% if c.pkg_dict.approval_state  == 'pending' %}
+    <div class="alert alert-warning" role="alert">
+      <p>{% trans %}This dataset is waiting for an administrator approval.{% endtrans %}</p>
+      {% if h.is_admin(c.user, c.pkg_dict.owner_org) %}
+      {# TODO: remove style #}
+      <div style="margin-top: 10px">
+        <a href="/dataset-publish/{{ c.pkg_dict.id }}/approve" class="btn btn-primary">
+          {% trans %}Approve Dataset{% endtrans %}
+        </a>
+        <a href="/dataset-publish/{{ c.pkg_dict.id }}/reject" class="btn btn-danger">
+          {% trans %}Reject Dataset{% endtrans %}
+        </a>
+      </div>
+
+      {% endif %}
+
+    </div>
+  {% elif c.pkg_dict.approval_state  == 'rejected' %}
+    {% if not h.is_admin(c.user)%}
+    <div class="alert alert-warning" role="alert">
+      <p>{% trans %}Dataset was rejected by administrator{% endtrans %}</p>
+    </div>
+    {% endif %}
+  {% endif %}
+
+    {% block package_description %}
+      {% if pkg.private %}
+        <span class="dataset-private label label-inverse pull-right">
+          <i class="fa fa-lock"></i>
+          {{ _('Private') }}
+        </span>
+      {% endif %}
+      <h1>
+        {% block page_heading %}
+          {{ h.dataset_display_name(pkg) }}
+          {% if pkg.state.startswith('draft') %}
+            [{{ _('Draft') }}]
+          {% endif %}
+          {% if pkg.state == 'deleted' %}
+            [{{ _('Deleted') }}]
+          {% endif %}
+        {% endblock %}
+      </h1>
+      {% block package_notes %}
+        {% if pkg.notes %}
+          <div class="notes embedded-content">
+            {{ h.render_markdown(h.get_translated(pkg, 'notes')) }}
+          </div>
+        {% endif %}
+      {% endblock %}
+      {# FIXME why is this here? seems wrong #}
+      <span class="insert-comment-thread"></span>
+    {% endblock %}
+    {% block package_resources %}
+      {% snippet "package/snippets/resources_list.html", pkg=pkg, resources=pkg.resources %}
+    {% endblock %}
+
+    {% block package_tags %}
+      {% snippet "package/snippets/tags.html", tags=pkg.tags %}
+    {% endblock %}
+
+    {% block package_additional_info %}
+      {% snippet "package/snippets/additional_info.html", pkg_dict=pkg %}
+    {% endblock %}
+{% endblock %}
