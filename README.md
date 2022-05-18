@@ -23,7 +23,7 @@ Note: if you're using `ckanext_scheming` extension, add new field to the schema 
     pip install -e .
 	pip install -r requirements.txt
 
-3. Add `datasetapproval` to the `ckan.plugins` setting in your CKAN
+3. Add `dataset_approval` to the `ckan.plugins` setting in your CKAN
    config file (by default the config file is located at
    `/etc/ckan/default/ckan.ini`).
 
