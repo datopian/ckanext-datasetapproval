@@ -29,12 +29,14 @@
   {% endif %}
 
     {% block package_description %}
+    <div class="dataset-status-label">
       {% if pkg.private %}
-        <span class="dataset-private label label-inverse pull-right">
+        <span class="dataset-private label label-inverse">
           <i class="fa fa-lock"></i>
           {{ _('Private') }}
         </span>
       {% endif %}
+    </div>
       <h1>
         {% block page_heading %}
           {{ h.dataset_display_name(pkg) }}
