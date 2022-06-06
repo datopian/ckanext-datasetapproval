@@ -88,12 +88,17 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm)
 
     # IPackageController
     def before_search(self, search_params):
+        include_approval_pending= search_params.get('include_approval_pending', False)
         include_drafts = search_params.get('include_drafts', False)
+
         if include_drafts:
             # show pending dataset in user dashboard.
             search_params.update({
                 'fq': "+creator_user_id:{0} ".format(c.userobj.id) + search_params.get('fq', '')
             })
+        elif include_approval_pending: 
+            search_params.pop('include_approval_pending')
+            return search_params
         else:
             search_params.update({
                 'fq': '!(approval_state:pending) ' + search_params.get('fq', '')
