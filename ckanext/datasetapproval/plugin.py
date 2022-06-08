@@ -5,6 +5,7 @@ from ckanext.datasetapproval import actions, blueprints, helpers, validation
 
 import json
 import logging as log
+from ckan.common import _, c
 
 log = log.getLogger(__name__)
 
@@ -87,9 +88,21 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm)
 
     # IPackageController
     def before_search(self, search_params):
-        search_params.update({
-            'fq': '!(approval_state:pending) ' + search_params.get('fq', '')
-        })
+        include_approval_pending= search_params.get('include_approval_pending', False)
+        include_drafts = search_params.get('include_drafts', False)
+
+        if include_drafts:
+            # show pending dataset in user dashboard.
+            search_params.update({
+                'fq': "+creator_user_id:{0} ".format(c.userobj.id) + search_params.get('fq', '')
+            })
+        elif include_approval_pending: 
+            search_params.pop('include_approval_pending')
+            return search_params
+        else:
+            search_params.update({
+                'fq': '!(approval_state:(pending OR rejected))' + search_params.get('fq', '')
+            })
         return search_params
 
     # IBlueprint

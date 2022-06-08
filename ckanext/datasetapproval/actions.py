@@ -3,6 +3,7 @@ import logging
 from ckan.lib.mailer import MailerException
 from ckan.plugins import toolkit
 import ckan.plugins as p
+import ckan.logic as logic
 
 from ckanext.datasetapproval.mailer import mail_package_review_request_to_admins
 
@@ -10,6 +11,7 @@ log = logging.getLogger()
 
 
 @p.toolkit.chained_action
+@logic.side_effect_free
 def package_show(up_func, context, data_dict):
     package = up_func(context, data_dict)
     # User with less perms then creator should not be able to access pending dataset

@@ -16,25 +16,32 @@
           {% trans %}Reject Dataset{% endtrans %}
         </a>
       </div>
-
       {% endif %}
-
     </div>
   {% elif c.pkg_dict.approval_state  == 'rejected' %}
     {% if not h.is_admin(c.user)%}
-    <div class="alert alert-warning" role="alert">
-      <p>{% trans %}Dataset was rejected by administrator{% endtrans %}</p>
+    <div class="alert alert-danger" role="alert">
+      <p>{% trans %}Dataset was rejected by administrator.{% endtrans %}</p>
     </div>
     {% endif %}
   {% endif %}
 
     {% block package_description %}
+    <div class="dataset-status-label">
       {% if pkg.private %}
-        <span class="dataset-private label label-inverse pull-right">
+        <span class="dataset-private label label-inverse">
           <i class="fa fa-lock"></i>
           {{ _('Private') }}
         </span>
       {% endif %}
+      {% if pkg.get('state', '').startswith('draft') %}
+      <span class="label label-info">{{ _('Draft') }}</span>
+    {% elif pkg.get('publishing_status', '').startswith('draft') %}
+      <span class="label label-info">{{ _('Draft') }}</span>
+    {% elif pkg.get('state', '').startswith('deleted') %}
+      <span class="label label-danger">{{ _('Deleted') }}</span>
+    {% endif %}
+    </div>
       <h1>
         {% block page_heading %}
           {{ h.dataset_display_name(pkg) }}

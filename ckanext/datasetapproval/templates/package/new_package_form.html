@@ -11,7 +11,6 @@
           <p>This dataset will be submited for approval by an Office Administrator.</p>
           <p>While being reviewed members of other offices or the general public won't be able to access it.</p>
         {% else %}
-          <p>This dataset is awaiting approval from an Office Administrator.</p>
           <p>Changes made now won't be public until the dataset is approved.</p>
         {% endif %}
     </div>
@@ -27,7 +26,7 @@
   {% if form_style != 'edit' %}
     {{ super() }}
   {% else %}
-    {{ _('Update Dataset') }}
+    {{ _('Finish Update') }}
   {% endif %}
 {% endblock %}
 
