@@ -16,14 +16,12 @@
           {% trans %}Reject Dataset{% endtrans %}
         </a>
       </div>
-
       {% endif %}
-
     </div>
   {% elif c.pkg_dict.approval_state  == 'rejected' %}
     {% if not h.is_admin(c.user)%}
-    <div class="alert alert-warning" role="alert">
-      <p>{% trans %}Dataset was rejected by administrator{% endtrans %}</p>
+    <div class="alert alert-danger" role="alert">
+      <p>{% trans %}Dataset was rejected by administrator.{% endtrans %}</p>
     </div>
     {% endif %}
   {% endif %}

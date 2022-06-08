@@ -101,7 +101,7 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm)
             return search_params
         else:
             search_params.update({
-                'fq': '!(approval_state:pending) ' + search_params.get('fq', '')
+                'fq': '!(approval_state:(pending OR rejected))' + search_params.get('fq', '')
             })
         return search_params
 
