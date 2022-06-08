@@ -23,6 +23,9 @@ def reject(id):
     return _make_action(id, 'reject')
 
 def dataset_review(id):
+    if toolkit.c.user != id:
+        return toolkit.abort(404)
+
     context = {
         u'model': model,
         u'session': model.Session,
@@ -44,7 +47,8 @@ def dataset_review(id):
     search_dict = {
         'rows': 50,
         'fq': 'approval_state:pending',
-        'include_approval_pending': True
+        'include_approval_pending': True,
+        'include_private': True
         }
 
     review_pending_dataset = toolkit.get_action('package_search')(context=context,
