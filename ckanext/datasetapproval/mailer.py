@@ -20,14 +20,33 @@ def mail_package_review_request_to_admins(context, data_dict, _type='new'):
     for admin_id in admin_ids:
         user = model.User.get(admin_id)
         if user.email:
-            subj = _compose_email_subj(_type)
-            body = _compose_email_body(context, data_dict, user, _type)
+            subj = _compose_email_subj_for_admins(_type)
+            body = _compose_email_body_for_admins(context, data_dict, user, _type)
             mail_user(user, subj, body)
             log.debug('[email] Dataset review request email sent to {0}'.format(user.name))
 
 
-def _compose_email_subj(_type):
+
+def mail_package_approve_reject_notification_to_editors(package_id, approval_state):
+    package_dict = toolkit.get_action('package_show' )({'ignore_auth': True}, {'id':package_id })
+    editor = model.User.get(package_dict.get('creator_user_id'))
+    if editor.email:
+        subj = _compose_email_subj_for_editors(approval_state)
+        body = _compose_email_body_for_editors(editor, package_dict, approval_state )
+        mail_user(editor, subj, body)
+        log.debug('[email] Dataset approved/rejected notfication email sent to {0}'.format(editor.name))
+
+
+def _compose_email_subj_for_admins(_type):
     return ' A {0} dataset is requested for review.'.format(_type)
+
+
+def _compose_email_subj_for_editors(state):
+    if state == 'approved':
+        return 'Dataset request has been reviewed and approved by the administrator.'
+    else: 
+        return 'Your dataset request has been reviewed by the administrator.'
+
 
 def _get_publisher_name(context, id):
     try:
@@ -36,7 +55,7 @@ def _get_publisher_name(context, id):
     except toolkit.ObjectNotFound as e:
         return 'None'
 
-def _compose_email_body(context, data_dict, user, _type):
+def _compose_email_body_for_admins(context, data_dict, user, _type):
     pkg_link = toolkit.url_for('dataset_read', id=data_dict['name'], qualified=True)
     admin_name = user.fullname or user.name
     site_title = config.get('ckan.site_title')
@@ -66,5 +85,36 @@ def _compose_email_body(context, data_dict, user, _type):
         Message sent by {site_title} ({site_url})
         This is an automated message, please don't respond to this address.
         '''
-    log.error(email_body)
+    return email_body
+
+
+def _compose_email_body_for_editors(user, package_dict, state):
+    pkg_link = toolkit.url_for('dataset_read', id=package_dict['name'], qualified=True)
+    editor_name = user.fullname or user.name
+    site_title = config.get('ckan.site_title')
+    site_url = config.get('ckan.site_url')
+    package_title = package_dict.get('title')
+    package_description = package_dict.get('notes', '')
+    package_url = pkg_link
+
+    email_body = f'''
+        Dear {editor_name},
+
+        {'Your dataset has been approved and published by the administrator.' 
+        if state == 'approved' else 'Your dataset request has been reviewed and rejected by the administrator.'} 
+
+            {package_title}
+
+            {package_description}
+
+       To view the dataset, please visit following page:
+
+            {package_url}
+
+        Have a nice day.
+
+        --
+        Message sent by {site_title} ({site_url})
+        This is an automated message, please don't respond to this address.
+        '''
     return email_body
