@@ -9,7 +9,8 @@ import ckan.lib.base as base
 from ckan.views.user import _extra_template_variables
 import ckan.lib.helpers as h
 from ckan.authz import users_role_for_group_or_org
-
+from ckan.lib.mailer import MailerException
+from ckanext.datasetapproval.mailer import mail_package_approve_reject_notification_to_editors
 log = logging.getLogger()
 
 
@@ -87,6 +88,13 @@ def _make_action(package_id, action='reject'):
         {'model': model, 'user': toolkit.c.user},
         {'id': package_id, 'approval_state': states[action]}
     )
+    # Notify editors via email that dataset has been approved/rejected.
+    try:
+        mail_package_approve_reject_notification_to_editors(package_id, states[action])
+    except MailerException:
+        message = '[email] Failed to sent notification to the editor: {}'
+        log.critical(message.format(package_id))
+    
     msg = 'Dataset "{0}" {1}'.format(data_dict['title'], states[action])
     if action == 'approve':
         toolkit.h.flash_success(msg)
