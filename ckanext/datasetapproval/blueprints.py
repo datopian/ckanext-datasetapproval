@@ -95,12 +95,12 @@ def _make_action(package_id, action='reject'):
         message = '[email] Failed to sent notification to the editor: {}'
         log.critical(message.format(package_id))
     
-    msg = 'Dataset "{0}" {1}'.format(data_dict['title'], states[action])
+    msg = 'Dataset "{0}" {1}.'.format(data_dict['title'], states[action])
     if action == 'approve':
         toolkit.h.flash_success(msg)
     else:
         toolkit.h.flash_error(msg)
-    return toolkit.redirect_to(controller='dataset', action='read', id=data_dict['name'])
+        return toolkit.redirect_to(controller='issues', action='new', dataset_id=package_id)
 
 
 approveBlueprint.add_url_rule('/dataset-publish/<id>/approve', view_func=approve)
