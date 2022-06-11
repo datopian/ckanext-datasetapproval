@@ -95,10 +95,23 @@ def _make_action(package_id, action='reject'):
         message = '[email] Failed to sent notification to the editor: {}'
         log.critical(message.format(package_id))
     
-    msg = 'Dataset "{0}" {1}.'.format(data_dict['title'], states[action])
     if action == 'approve':
+        issues_list = toolkit.get_action('issue_search')(
+            {'model': model, 'user': toolkit.c.user}, 
+            {'dataset_id': package_id })
+        for issue in issues_list['results']:
+            issue_dict = {
+                'issue_number': str(issue.get('number', '')),
+                'dataset_id': package_id,
+                'status': 'closed'
+                }
+            toolkit.get_action('issue_update')({'ignore_auth': True}, issue_dict)
+        msg = 'Dataset "{0}" {1}.'.format(data_dict['title'], states[action])
         toolkit.h.flash_success(msg)
+        return toolkit.redirect_to(controller='dataset', action='read', id=data_dict['name'])
     else:
+        msg = 'Dataset "{0}" {1}. Please provide your feedback comment below.' \
+                .format(data_dict['title'], states[action]) 
         toolkit.h.flash_error(msg)
         return toolkit.redirect_to(controller='issues', action='new', dataset_id=package_id)
 

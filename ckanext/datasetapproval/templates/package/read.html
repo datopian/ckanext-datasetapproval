@@ -19,7 +19,12 @@
       {% endif %}
     </div>
   {% elif c.pkg_dict.approval_state  == 'rejected' %}
-    {% if not h.is_admin(c.user)%}
+    {% if h.is_admin(c.user, c.pkg_dict.owner_org) %}
+    <div class="alert alert-danger" role="alert">
+      <p>{% trans %}Dataset was rejected.{% endtrans %}</p>
+    </div>
+    {% endif %}
+    {% if not h.is_admin(c.user, c.pkg_dict.owner_org)%}
     <div class="alert alert-danger" role="alert">
       <p>{% trans %}Dataset was rejected by administrator.{% endtrans %}</p>
     </div>
