@@ -74,7 +74,7 @@ def _raise_not_authz_or_not_pending(id):
     # check approval_state is pending
     data_dict = toolkit.get_action('package_show')({}, {'id': id})
     if data_dict.get('approval_state') != 'pending':
-        raise toolkit.ObjectNotFound('Dataset "{}" not found'.format(id))
+        raise toolkit.abort(404, 'Dataset "{}" not found'.format(id))
 
 
 def _make_action(package_id, action='reject'):
