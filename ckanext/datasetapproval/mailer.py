@@ -15,9 +15,15 @@ def mail_package_review_request_to_admins(context, data_dict, _type='new'):
         context=context,
         data_dict={'id': data_dict.get('owner_org')}
     )
-    admin_ids = [i[0] for i in members if i[2] == 'Admin']
+    org_admin = [i[0] for i in members if i[2] == 'Admin']
 
-    for admin_id in admin_ids:
+    sysadmins = model.Session.query(model.User.id).filter(
+            model.User.state != model.State.DELETED,
+            model.User.sysadmin == True
+            ).all()
+    # Merged org admin and sysadmin so that sysadmin also gets the email. 
+    admins = list(set( org_admin + [admin[0] for admin in sysadmins]))
+    for admin_id in admins :
         user = model.User.get(admin_id)
         if user.email:
             subj = _compose_email_subj_for_admins(_type)
