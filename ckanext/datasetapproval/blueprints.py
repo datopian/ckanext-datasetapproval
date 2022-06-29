@@ -58,8 +58,8 @@ def dataset_review(id):
     dataset_with_approval_access = []
     for dataset in review_pending_dataset: 
         pkg_organizaiton = dataset.get('owner_org')
-        permisssion = users_role_for_group_or_org(pkg_organizaiton, toolkit.c.userobj.name)
-        if permisssion == 'admin' or toolkit.c.userobj.sysadmin:
+        permission = users_role_for_group_or_org(pkg_organizaiton, toolkit.c.userobj.name)
+        if permission == 'admin' or toolkit.c.userobj.sysadmin:
             dataset_with_approval_access.append(dataset)
 
     extra_vars['user_dict'].update({
@@ -71,15 +71,11 @@ def dataset_review(id):
 def _raise_not_authz_or_not_pending(id):
     dataset_dict = toolkit.get_action('package_show') \
                     ({u"ignore_auth": True}, {'id': id})
-    permisssion = users_role_for_group_or_org(dataset_dict.get('owner_org'), toolkit.c.userobj.name)
-    if not permisssion and toolkit.c.userobj.sysadmin:
+    permission = users_role_for_group_or_org(dataset_dict.get('owner_org'), toolkit.c.userobj.name)
+    if not permission and toolkit.c.userobj.sysadmin:
         return
-    elif permisssion != 'admin':
+    elif permission != 'admin' or dataset_dict.get('approval_state') != 'pending':
         raise toolkit.abort(404, 'Dataset "{}" not found'.format(id))
-    # check approval_state is pending
-    elif dataset_dict.get('approval_state') != 'pending':
-        raise toolkit.abort(404, 'Dataset "{}" not found'.format(id))
-
 
 def _make_action(package_id, action='reject'):
     states = {
