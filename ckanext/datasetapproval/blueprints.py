@@ -69,12 +69,16 @@ def dataset_review(id):
     return base.render(u'user/dashboard_review.html', extra_vars)
 
 def _raise_not_authz_or_not_pending(id):
-    toolkit.check_access(
-        'package_delete', {'model': model, 'user': toolkit.c.user}, {'id': id})
+    dataset_dict = toolkit.get_action('package_show') \
+                    ({u"ignore_auth": True}, {'id': id})
+    permisssion = users_role_for_group_or_org(dataset_dict.get('owner_org'), toolkit.c.userobj.name)
+    if not permisssion and toolkit.c.userobj.sysadmin:
+        return
+    elif permisssion != 'admin':
+        raise toolkit.abort(404, 'Dataset "{}" not found'.format(id))
     # check approval_state is pending
-    data_dict = toolkit.get_action('package_show')({}, {'id': id})
-    if data_dict.get('approval_state') != 'pending':
-        raise toolkit.ObjectNotFound('Dataset "{}" not found'.format(id))
+    elif dataset_dict.get('approval_state') != 'pending':
+        raise toolkit.abort(404, 'Dataset "{}" not found'.format(id))
 
 
 def _make_action(package_id, action='reject'):
