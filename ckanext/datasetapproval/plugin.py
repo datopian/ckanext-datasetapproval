@@ -88,7 +88,12 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm)
 
     # IPackageController
     def before_search(self, search_params):
-        include_approval_pending= search_params.get('include_approval_pending', False)
+        if toolkit.c.userobj:
+            user_is_syadmin = toolkit.c.userobj.sysadmin
+        else:
+            user_is_syadmin = False
+
+        include_approval_pending = search_params.get('include_approval_pending', False)
         include_drafts = search_params.get('include_drafts', False)
 
         if include_drafts:
@@ -96,8 +101,14 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm)
             search_params.update({
                 'fq': "+creator_user_id:{0} ".format(c.userobj.id) + search_params.get('fq', '')
             })
-        elif include_approval_pending: 
-            search_params.pop('include_approval_pending')
+        elif include_approval_pending or user_is_syadmin: 
+            search_params.pop('include_approval_pending', None)
+
+            # Order dataset by approval state for sysadmin user.
+            if search_params.get('sort', '').startswith('approval_state'):
+                search_params.update({
+                    'fq': '!(approval_state:(active OR approved))' + search_params.get('fq', '')
+                 })
             return search_params
         else:
             search_params.update({

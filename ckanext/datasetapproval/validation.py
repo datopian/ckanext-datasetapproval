@@ -19,12 +19,12 @@ def state_validator(key, data, errors, context):
         if org.get('id') == office_id:
             if org.get('capacity') == 'admin':
                 # If no state provided and user is an admin, default to active
-                state = state or 'active'
+                state = state 
             elif is_ready_to_publish:
                 # If not admin and not draft, dataset has to go through approval process. 
                 state = 'pending'
             else: 
                 state = False
 
-    data[key] = state or 'active'
+    data[key] = state
     return 'hello'
