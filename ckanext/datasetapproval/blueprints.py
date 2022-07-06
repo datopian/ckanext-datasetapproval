@@ -72,9 +72,11 @@ def _raise_not_authz_or_not_pending(id):
     dataset_dict = toolkit.get_action('package_show') \
                     ({u"ignore_auth": True}, {'id': id})
     permission = users_role_for_group_or_org(dataset_dict.get('owner_org'), toolkit.c.userobj.name)
-    if not permission and toolkit.c.userobj.sysadmin:
-        return
-    elif permission != 'admin' or dataset_dict.get('approval_state') != 'pending':
+    is_pending = dataset_dict.get('approval_state') == 'pending'
+
+    if is_pending and (toolkit.c.userobj.sysadmin or permission == 'admin'):
+        return 
+    else :
         raise toolkit.abort(404, 'Dataset "{}" not found'.format(id))
 
 def _make_action(package_id, action='reject'):
