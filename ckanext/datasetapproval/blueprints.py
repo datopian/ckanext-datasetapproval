@@ -1,4 +1,5 @@
 import logging
+from functools import partial
 
 from flask import Blueprint
 
@@ -11,6 +12,7 @@ import ckan.lib.helpers as h
 from ckan.authz import users_role_for_group_or_org
 from ckan.lib.mailer import MailerException
 from ckanext.datasetapproval.mailer import mail_package_approve_reject_notification_to_editors
+from ckan.views.dataset import _pager_url
 log = logging.getLogger()
 
 
@@ -45,14 +47,20 @@ def dataset_review(id):
     if extra_vars is None:
         return h.redirect_to(u'user.login')
 
+    params_nopage = [(k, v) for k, v in toolkit.request.args.items(multi=True)
+                     if k != u'page']
+    page = h.get_page_number(toolkit.request.args)
+    pager_url = partial(_pager_url, params_nopage, 'dataset')
+    
     search_dict = {
-        'rows': 50,
+        'rows': 20,
+        'start': (page - 1) * 20,
         'fq': 'approval_state:pending',
         'include_approval_pending': True,
         'include_private': True
         }
 
-    review_pending_dataset = toolkit.get_action('package_search')(context=context,
+    review_pending_dataset = toolkit.get_action('package_search')({'ignore_auth': True},
                                                data_dict=search_dict).get('results')
 
     dataset_with_approval_access = []
@@ -65,12 +73,20 @@ def dataset_review(id):
     extra_vars['user_dict'].update({
         'datasets' : dataset_with_approval_access,
         })
+    
+    extra_vars[u'page'] = h.Page(
+        collection = dataset_with_approval_access,
+        page = page,
+        url = pager_url,
+        item_count = len(dataset_with_approval_access),
+        items_per_page = 10
+    )
 
     return base.render(u'user/dashboard_review.html', extra_vars)
 
 def _raise_not_authz_or_not_pending(id):
     dataset_dict = toolkit.get_action('package_show') \
-                    ({u"ignore_auth": True}, {'id': id})
+                    ({u'ignore_auth': True}, {'id': id})
     permission = users_role_for_group_or_org(dataset_dict.get('owner_org'), toolkit.c.userobj.name)
     is_pending = dataset_dict.get('approval_state') == 'pending'
 
