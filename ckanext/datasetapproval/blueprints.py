@@ -12,11 +12,23 @@ import ckan.lib.helpers as h
 from ckan.authz import users_role_for_group_or_org
 from ckan.lib.mailer import MailerException
 from ckanext.datasetapproval.mailer import mail_package_approve_reject_notification_to_editors
-from ckan.views.dataset import _pager_url
+from ckan.views.dataset import url_with_params
+
 log = logging.getLogger()
 
 
 approveBlueprint = Blueprint('approval', __name__,)
+
+
+def _pager_url(params_nopage, package_type, q=None, page=None):
+    params = list(params_nopage)
+    params.append((u'page', page))
+    return search_url(params, package_type)
+
+
+def search_url(params, package_type=None):
+    url = h.url_for('approval.dataset_review', id=toolkit.c.user)
+    return url_with_params(url, params)
 
 
 def approve(id):
@@ -49,38 +61,43 @@ def dataset_review(id):
 
     params_nopage = [(k, v) for k, v in toolkit.request.args.items(multi=True)
                      if k != u'page']
+    limit = 20
     page = h.get_page_number(toolkit.request.args)
     pager_url = partial(_pager_url, params_nopage, 'dataset')
     
     search_dict = {
-        'rows': 20,
-        'start': (page - 1) * 20,
+        'rows': limit,
+        'start': limit * (page - 1),
         'fq': 'approval_state:pending',
         'include_approval_pending': True,
         'include_private': True
         }
 
-    review_pending_dataset = toolkit.get_action('package_search')({'ignore_auth': True},
-                                               data_dict=search_dict).get('results')
+    pending_datasets = toolkit.get_action('package_search')({'ignore_auth': True},
+                                               data_dict=search_dict)
 
-    dataset_with_approval_access = []
-    for dataset in review_pending_dataset: 
+    # New list of dataset with approval permission.
+    datasets = []
+    for dataset in pending_datasets['results']: 
         pkg_organizaiton = dataset.get('owner_org')
         permission = users_role_for_group_or_org(pkg_organizaiton, toolkit.c.userobj.name)
         if permission == 'admin' or toolkit.c.userobj.sysadmin:
-            dataset_with_approval_access.append(dataset)
+            datasets.append(dataset)
+        else: 
+            pending_datasets['count'] -=  1
 
     extra_vars['user_dict'].update({
-        'datasets' : dataset_with_approval_access,
+        'datasets' : datasets
         })
     
     extra_vars[u'page'] = h.Page(
-        collection = dataset_with_approval_access,
+        collection = datasets,
         page = page,
         url = pager_url,
-        item_count = len(dataset_with_approval_access),
-        items_per_page = 10
+        item_count = pending_datasets['count'],
+        items_per_page = limit
     )
+    extra_vars[u'page'].items = datasets
 
     return base.render(u'user/dashboard_review.html', extra_vars)
 
