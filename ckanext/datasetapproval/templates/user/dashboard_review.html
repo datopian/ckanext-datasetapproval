@@ -14,4 +14,7 @@
     {{ _('you have no dataset requested for review.') }}
   {% endif %}
   {% endblock %}
+  {% block page_pagination %}
+    {{ page.pager() }}
+  {% endblock %}
 {% endblock %}
