@@ -127,7 +127,7 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin,
                        ).get_user_dataset_labels(user_obj)
 
         dataset_approve_permission = False
-        if user_obj.plugin_extras:
+        if user_obj and user_obj.plugin_extras:
             dataset_approve_permission = user_obj.plugin_extras.get('dataset_approve_permission', False)
 
         if dataset_approve_permission:
