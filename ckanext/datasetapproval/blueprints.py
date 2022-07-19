@@ -41,6 +41,13 @@ def dataset_review(id):
     if toolkit.c.user != id:
         return toolkit.abort(404)
 
+    # Pass extra params to user_object
+    if toolkit.c.userobj.plugin_extras:
+        toolkit.c.userobj.plugin_extras = toolkit.c.userobj.plugin_extras \
+                                    .update({'dataset_approve_permission': True})
+    else :
+        toolkit.c.userobj.plugin_extras = {'dataset_approve_permission': True}
+
     context = {
         u'model': model,
         u'session': model.Session,
@@ -73,31 +80,22 @@ def dataset_review(id):
         'include_private': True
         }
 
-    pending_datasets = toolkit.get_action('package_search')({'ignore_auth': True},
+    pending_datasets = toolkit.get_action('package_search')(context,
                                                data_dict=search_dict)
 
-    # New list of dataset with approval permission.
-    datasets = []
-    for dataset in pending_datasets['results']: 
-        pkg_organizaiton = dataset.get('owner_org')
-        permission = users_role_for_group_or_org(pkg_organizaiton, toolkit.c.userobj.name)
-        if permission == 'admin' or toolkit.c.userobj.sysadmin:
-            datasets.append(dataset)
-        else: 
-            pending_datasets['count'] -=  1
-
     extra_vars['user_dict'].update({
-        'datasets' : datasets
+        'datasets' : pending_datasets['results'],
+        'total_count': pending_datasets['count']
         })
     
     extra_vars[u'page'] = h.Page(
-        collection = datasets,
+        collection = pending_datasets['results'],
         page = page,
         url = pager_url,
         item_count = pending_datasets['count'],
         items_per_page = limit
     )
-    extra_vars[u'page'].items = datasets
+    extra_vars[u'page'].items = pending_datasets['results']
 
     return base.render(u'user/dashboard_review.html', extra_vars)
 

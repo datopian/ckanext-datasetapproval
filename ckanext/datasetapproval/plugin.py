@@ -1,5 +1,6 @@
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
+from ckan.lib.plugins import DefaultPermissionLabels
 
 from ckanext.datasetapproval import actions, blueprints, helpers, validation
 
@@ -19,7 +20,8 @@ def unicode_please(value):
             return value.decode(u'cp1252')
     return text_type(value)
 
-class DatasetapprovalPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
+class DatasetapprovalPlugin(plugins.SingletonPlugin, 
+        DefaultPermissionLabels, toolkit.DefaultDatasetForm):
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.IValidators)
     plugins.implements(plugins.IActions)
@@ -28,6 +30,9 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm)
     plugins.implements(plugins.IPackageController, inherit=True)
     plugins.implements(plugins.ITemplateHelpers)
     plugins.implements(plugins.IDatasetForm)
+    plugins.implements(plugins.IPermissionLabels, inherit=True)
+
+
 
     # IConfigurer
     def update_config(self, config_):
@@ -115,6 +120,24 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm)
                 'fq': '!(approval_state:(pending OR rejected))' + search_params.get('fq', '')
             })
         return search_params
+
+    # IPermissionLabels
+    def get_user_dataset_labels(self, user_obj):
+        labels = super(DatasetapprovalPlugin, self
+                       ).get_user_dataset_labels(user_obj)
+
+        dataset_approve_permission = False
+        if user_obj and user_obj.plugin_extras:
+            dataset_approve_permission = user_obj.plugin_extras.get('dataset_approve_permission', False)
+
+        if dataset_approve_permission:
+            labels = [x for x in labels if not x.startswith('member')]
+            orgs = toolkit.get_action(u'organization_list_for_user')(
+                {u'user': user_obj.id}, {u'permission': u'admin'})
+            labels.extend(u'member-%s' % o['id'] for o in orgs)
+            
+        return labels
+
 
     # IBlueprint
     def get_blueprint(self):
