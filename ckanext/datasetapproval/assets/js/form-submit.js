@@ -27,7 +27,11 @@ this.ckan.module('form-save', function (jQuery) {
         if(this.options.type === 'published'){
           event.preventDefault();
           var form = $('#dataset-edit')
-          $('#field-publishing_status').val('published')
+          
+          if ($('#field-publishing_status').val() != 'in_review'){
+            $('#field-publishing_status').val('published')
+          }
+
           form.find('button[name=save]').click()
         }
         if(this.options.type === 'resource-draft'){
