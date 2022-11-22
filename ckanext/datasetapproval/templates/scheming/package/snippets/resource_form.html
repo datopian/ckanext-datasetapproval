@@ -1,6 +1,11 @@
 {% ckan_extends %}
 
 
+{% block basic_fields %}
+  {{ super() }}
+  <input id="field-pkg_publishing_status" type="hidden" name="pkg_publishing_status" value="draft">
+{% endblock %}
+
 {% block metadata_fields %}
   {{ super() }}   
   <!-- Added instruction for publishing draft dataset -->
