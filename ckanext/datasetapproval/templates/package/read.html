@@ -3,7 +3,7 @@
 {% block primary_content_inner %}
   {{ super() }}
 
-  {% if c.pkg_dict.approval_state  == 'pending' %}
+  {% if c.pkg_dict.publishing_status  == 'in_review' %}
     <div class="alert alert-warning" role="alert">
       <p>{% trans %}This dataset is waiting for an administrator approval.{% endtrans %}</p>
       {% if h.is_admin(c.user, c.pkg_dict.owner_org) %}
@@ -18,7 +18,7 @@
       </div>
       {% endif %}
     </div>
-  {% elif c.pkg_dict.approval_state  == 'rejected' %}
+  {% elif c.pkg_dict.publishing_status  == 'rejected' %}
     {% if h.is_admin(c.user, c.pkg_dict.owner_org) %}
     <div class="alert alert-danger" role="alert">
       <p>{% trans %}Dataset was rejected.{% endtrans %}</p>

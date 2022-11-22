@@ -1,4 +1,5 @@
 import logging
+import ckan.authz as authz
 
 from ckan.lib.mailer import MailerException
 from ckan.plugins import toolkit
@@ -13,27 +14,14 @@ log = logging.getLogger()
 @p.toolkit.chained_action
 @logic.side_effect_free
 def package_show(up_func, context, data_dict):
-    package = up_func(context, data_dict)
-    # User with less perms then creator should not be able to access pending dataset
-    pending = package.get('approval_state') == 'pending'
-    # Same With rejected
-    rejected = package.get('approval_state') == 'rejected'
-    try:
-        toolkit.check_access('package_update', context, data_dict)
-        can_edit = True
-    except toolkit.NotAuthorized:
-        can_edit = False
-    if not can_edit and pending:
-        raise toolkit.ObjectNotFound
-    if not can_edit and rejected:
-        raise toolkit.ObjectNotFound
-    return package
-
+    toolkit.check_access('package_show_with_approval', context, data_dict)
+    return up_func(context, data_dict)
 
 @p.toolkit.chained_action
 def package_create(up_func, context, data_dict):
     dataset_dict = up_func(context, data_dict)
-    if dataset_dict.get('approval_state') == 'pending':
+    # Sent email to admins to review the dataset
+    if dataset_dict.get('publishing_status') == 'in_review':
         try:
             mail_package_review_request_to_admins(context, dataset_dict, 'new')
         except MailerException:
@@ -45,10 +33,38 @@ def package_create(up_func, context, data_dict):
 @p.toolkit.chained_action
 def package_update(up_func, context, data_dict):
     dataset_dict = up_func(context, data_dict)
-    if dataset_dict.get('approval_state') == 'pending':
+    
+    # Sent email to admins to review the dataset
+    if dataset_dict.get('publishing_status') == 'in_review':
         try:
             mail_package_review_request_to_admins(context, dataset_dict, 'updated')
         except MailerException:
             message = '[email] Package review request is not sent: {0}'
             log.critical(message.format(data_dict.get('title')))
     return dataset_dict
+
+
+@p.toolkit.chained_action   
+def resource_create(up_func,context, data_dict):
+    result = up_func(context, data_dict)
+     # little hack here, update dataset publishing status 
+    if data_dict.get('pkg_publishing_status', False):
+        toolkit.get_action('package_patch')(context, {
+            'id': data_dict.get('package_id', ''), 
+            'publishing_status': data_dict.get('pkg_publishing_status')
+            })
+        data_dict.pop('pkg_publishing_status', None)
+    return result
+
+
+@p.toolkit.chained_action   
+def resource_update(up_func,context, data_dict):
+    result = up_func(context, data_dict)
+    # little hack here, update dataset publishing status 
+    if data_dict.get('pkg_publishing_status', False):
+        toolkit.get_action('package_patch')(context, {
+            'id': data_dict.get('package_id', ''), 
+            'publishing_status': data_dict.get('pkg_publishing_status')
+            })
+        data_dict.pop('pkg_publishing_status', None)
+    return result

@@ -26,8 +26,8 @@ setup(
     url='https://github.com//ckanext-datasetapproval',
 
     # Author details
-    author='''''',
-    author_email='''''',
+    author='''Datopain''',
+    author_email='''support@datopain.com''',
 
     # Choose your license
     license='AGPL',

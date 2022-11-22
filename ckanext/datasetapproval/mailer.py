@@ -33,12 +33,12 @@ def mail_package_review_request_to_admins(context, data_dict, _type='new'):
 
 
 
-def mail_package_approve_reject_notification_to_editors(package_id, approval_state):
+def mail_package_approve_reject_notification_to_editors(package_id, publishing_status):
     package_dict = toolkit.get_action('package_show' )({'ignore_auth': True}, {'id':package_id })
     editor = model.User.get(package_dict.get('creator_user_id'))
     if editor.email:
-        subj = _compose_email_subj_for_editors(approval_state)
-        body = _compose_email_body_for_editors(editor, package_dict, approval_state )
+        subj = _compose_email_subj_for_editors(publishing_status)
+        body = _compose_email_body_for_editors(editor, package_dict, publishing_status )
         mail_user(editor, subj, body)
         log.debug('[email] Dataset approved/rejected notfication email sent to {0}'.format(editor.name))
 

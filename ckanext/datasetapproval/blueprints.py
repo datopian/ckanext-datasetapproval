@@ -75,27 +75,27 @@ def dataset_review(id):
     search_dict = {
         'rows': limit,
         'start': limit * (page - 1),
-        'fq': 'approval_state:pending',
-        'include_approval_pending': True,
+        'fq': 'publishing_status:in_review',
+        'include_in_review': True,
         'include_private': True
         }
 
-    pending_datasets = toolkit.get_action('package_search')(context,
+    in_review_datasets = toolkit.get_action('package_search')(context,
                                                data_dict=search_dict)
 
     extra_vars['user_dict'].update({
-        'datasets' : pending_datasets['results'],
-        'total_count': pending_datasets['count']
+        'datasets' : in_review_datasets['results'],
+        'total_count': in_review_datasets['count']
         })
     
     extra_vars[u'page'] = h.Page(
-        collection = pending_datasets['results'],
+        collection = in_review_datasets['results'],
         page = page,
         url = pager_url,
-        item_count = pending_datasets['count'],
+        item_count = in_review_datasets['count'],
         items_per_page = limit
     )
-    extra_vars[u'page'].items = pending_datasets['results']
+    extra_vars[u'page'].items = in_review_datasets['results']
 
     return base.render(u'user/dashboard_review.html', extra_vars)
 
@@ -103,7 +103,7 @@ def _raise_not_authz_or_not_pending(id):
     dataset_dict = toolkit.get_action('package_show') \
                     ({u'ignore_auth': True}, {'id': id})
     permission = users_role_for_group_or_org(dataset_dict.get('owner_org'), toolkit.c.userobj.name)
-    is_pending = dataset_dict.get('approval_state') == 'pending'
+    is_pending = dataset_dict.get('publishing_status') == 'in_review'
 
     if is_pending and (toolkit.c.userobj.sysadmin or permission == 'admin'):
         return 
@@ -117,9 +117,9 @@ def _make_action(package_id, action='reject'):
     }
     # check access and state
     _raise_not_authz_or_not_pending(package_id)
-    data_dict = toolkit.get_action('package_patch')(
+    toolkit.get_action('package_patch')(
         {'model': model, 'user': toolkit.c.user},
-        {'id': package_id, 'approval_state': states[action]}
+        {'id': package_id, 'publishing_status': states[action]}
     )
     # Notify editors via email that dataset has been approved/rejected.
     try:
@@ -128,26 +128,7 @@ def _make_action(package_id, action='reject'):
         message = '[email] Failed to sent notification to the editor: {}'
         log.critical(message.format(package_id))
     
-    if action == 'approve':
-        issues_list = toolkit.get_action('issue_search')(
-            {'model': model, 'user': toolkit.c.user}, 
-            {'dataset_id': package_id })
-        for issue in issues_list['results']:
-            issue_dict = {
-                'issue_number': str(issue.get('number', '')),
-                'dataset_id': package_id,
-                'status': 'closed'
-                }
-            toolkit.get_action('issue_update')({'ignore_auth': True}, issue_dict)
-        msg = 'Dataset "{0}" {1}.'.format(data_dict['title'], states[action])
-        toolkit.h.flash_success(msg)
-        return toolkit.redirect_to(controller='dataset', action='read', id=data_dict['name'])
-    else:
-        msg = 'Dataset "{0}" {1}. Please provide your feedback comment below.' \
-                .format(data_dict['title'], states[action]) 
-        toolkit.h.flash_error(msg)
-        return toolkit.redirect_to(controller='issues', action='new', dataset_id=package_id)
-
+    return toolkit.redirect_to(controller='dataset', action='read', id=package_id)
 
 approveBlueprint.add_url_rule('/dataset-publish/<id>/approve', view_func=approve)
 approveBlueprint.add_url_rule('/dataset-publish/<id>/reject', view_func=reject)

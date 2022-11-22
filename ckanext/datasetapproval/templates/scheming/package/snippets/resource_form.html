@@ -1,0 +1,14 @@
+{% ckan_extends %}
+
+
+{% block metadata_fields %}
+  {{ super() }}   
+  <!-- Added instruction for publishing draft dataset -->
+  {% if stage %}
+    {% if stage == 1 %}
+      <div class="alert alert-warning" role="alert">You're updating this resource as a draft. Once you done with updating, you can submit the dataset for review by visiting the dataset edit page and clicking the "Finish Update" button <a href="{{ h.url_for('dataset.edit', id=pkg_name)}}"> dataset edit page.</a> </div>
+    {% endif %}
+  {% else %}
+      <div class="alert alert-warning" role="alert">You're updating this resource as a draft. Once you done with updating, you can submit the dataset for review by visiting the dataset edit page and clicking the "Finish Update" button <a href="{{ h.url_for('dataset.edit', id=pkg_name)}}"> dataset edit page.</a> </div>
+  {% endif %}
+{% endblock %}
