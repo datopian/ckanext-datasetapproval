@@ -1,0 +1,5 @@
+.dataset-status-label {
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: row;
+}

@@ -8,3 +8,8 @@ datasetapproval_js:
     preload:
       - base/main
 
+datasetapproval_css:
+  filter: cssrewrite
+  output: ckanext-datasetapproval/%(version)s-approval.css
+  contents:
+    - css/approval.css

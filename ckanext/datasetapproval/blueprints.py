@@ -119,7 +119,7 @@ def _make_action(package_id, action='reject'):
     _raise_not_authz_or_not_pending(package_id)
     toolkit.get_action('package_patch')(
         {'model': model, 'user': toolkit.c.user},
-        {'id': package_id, 'publishing_status': states[action]}
+        {'id': package_id, 'publishing_status': states[action], 'private': False}
     )
     # Notify editors via email that dataset has been approved/rejected.
     try:
