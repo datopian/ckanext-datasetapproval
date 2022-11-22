@@ -1,0 +1,27 @@
+{% ckan_extends %}
+
+{% block basic_fields %}
+    {{ super() }}
+
+    {% set publishing_status = data.get('publishing_status', 'draft')  %}
+    <input id="field-publishing_status" type="hidden" name="publishing_status" value="{{ publishing_status }}" />
+    {%- if 'resource_fields' not in schema -%}
+    <!-- force controller to skip resource-editing step for this type -->
+    <input type="hidden" name="_ckan_phase" value="" />
+    {%- endif -%}
+{% endblock %}
+
+{% block save_button %}
+  {% if form_style == 'new' %}
+      <a class="btn btn-primary" data-module="form-save" data-module-type="draft">{{ _('Next: Add Data')}}</a>
+      <button class="btn btn-primary hidden" type="submit" name="save"></button>
+    {% else %}
+      <a class="btn btn-warning" data-module="form-save" data-module-type="draft">{{ _('Save as Draft')}}</a>
+      <a class="btn btn-primary" data-module="form-save" data-module-type="published">
+        {% block save_button_text %}
+        {{ _('Next: Add Data') }}
+        {% endblock %}
+      </a>
+      <button class="btn btn-primary hidden" type="submit" name="save"></button>
+  {% endif %}
+{% endblock %}

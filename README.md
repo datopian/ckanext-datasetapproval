@@ -8,9 +8,11 @@ To install ckanext-datasetapproval:
 
 Note: if you're using `ckanext_scheming` extension, add new field to the schema configuration YAML file.
 
-    - field_name: approval_state
-      label: Approval
-      validators: ignore_missing state_validator
+   - field_name: publishing_status
+     label: Publishing Status
+     form_snippet: null
+     display_snippet: null
+     validators: ignore_missing publishing_status_validator
 
 1. Activate your CKAN virtual environment, for example:
 

@@ -4,27 +4,23 @@ import logging as log
 
 log = log.getLogger(__name__)
 
-
-def state_validator(key, data, errors, context):
+def publishing_status_validator(key, data, errors, context):
     user_orgs = toolkit.get_action('organization_list_for_user')(
         context, {'id': context['user']})
-    office_id = data.get(('owner_org',))
+    
+    state = data.pop(key, 'draft')
 
-    state = data.pop(key, None)
-    is_ready_to_publish = data.get(('publishing_status',)) == 'published'
-  
-    # If the user is member of the organization but not an admin, force the
-    # state to be pending
-    for org in user_orgs:
-        if org.get('id') == office_id:
-            if org.get('capacity') == 'admin':
-                # If no state provided and user is an admin, default to active
-                state = state or 'active'
-            elif is_ready_to_publish:
-                # If not admin and not draft, dataset has to go through approval process. 
-                state = 'pending'
-            else: 
-                state = False
+    owner_org_id = data.get(('owner_org',))
 
-    data[key] = state or 'active'
-    return 'hello'
+    # Published means user finished updating the dataset and ready to publish. 
+    if state == 'published':
+        for org in user_orgs:
+            if org.get('id') == owner_org_id:
+                # IF the user is not an admin, force the publishing status to be in_review
+                # Otherwise, leave aways approved.
+                    if org.get('capacity') == 'admin' :
+                        state =  'approved'
+                    else: 
+                        state = 'in_review'
+    data[key] = state
+    return

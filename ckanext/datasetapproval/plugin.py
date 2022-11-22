@@ -1,7 +1,9 @@
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
+from ckan.lib.plugins import DefaultPermissionLabels
+from ckan.authz import users_role_for_group_or_org
 
-from ckanext.datasetapproval import actions, blueprints, helpers, validation
+from ckanext.datasetapproval import auth, actions, blueprints, helpers, validation
 
 import json
 import logging as log
@@ -19,21 +21,36 @@ def unicode_please(value):
             return value.decode(u'cp1252')
     return text_type(value)
 
-class DatasetapprovalPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm):
+
+def editor_publishing_dataset(owner_org, user_obj):
+    '''
+    Check if user is editor of the organization
+    '''
+    user_capacity = users_role_for_group_or_org(owner_org, user_obj.name)
+    if user_obj.sysadmin:
+        return False
+    return user_capacity != 'admin'
+
+class DatasetapprovalPlugin(plugins.SingletonPlugin, 
+        DefaultPermissionLabels, toolkit.DefaultDatasetForm):
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.IValidators)
     plugins.implements(plugins.IActions)
     plugins.implements(plugins.IBlueprint)
+    plugins.implements(plugins.IAuthFunctions, inherit=True)
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.IPackageController, inherit=True)
     plugins.implements(plugins.ITemplateHelpers)
     plugins.implements(plugins.IDatasetForm)
+    plugins.implements(plugins.IPermissionLabels, inherit=True)
+
+
 
     # IConfigurer
     def update_config(self, config_):
         toolkit.add_template_directory(config_, 'templates')
         toolkit.add_public_directory(config_, 'public')
-        toolkit.add_resource('fanstatic',
+        toolkit.add_resource('assets',
             'datasetapproval')
 
    # IActions
@@ -41,28 +58,36 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm)
         return {
             'package_create': actions.package_create,
             'package_show': actions.package_show,
-            'package_update': actions.package_update
+            'package_update': actions.package_update,
+            'resource_create': actions.resource_create,
+            'resource_update': actions.resource_update,
+        }
+    # IAuthFunctions
+    def get_auth_functions(self):
+        return {
+            'package_show_with_approval': auth.package_show_with_approval
         }
 
     #IDatasetForm
     def create_package_schema(self):
         schema = super(DatasetapprovalPlugin, self).create_package_schema()
         schema.update({
-            'approval_state': [toolkit.get_validator('state_validator'), toolkit.get_converter('convert_to_extras')]
+            'publishing_status': [toolkit.get_validator('publishing_status_validator'),
+                                        toolkit.get_converter('convert_to_extras')]
         })
         return schema
     def update_package_schema(self):
         schema = super(DatasetapprovalPlugin, self).update_package_schema()
-        # our custom field
         schema.update({
-            'approval_state': [toolkit.get_validator('state_validator'), toolkit.get_converter('convert_to_extras')]
+            'publishing_status': [toolkit.get_validator('publishing_status_validator'), 
+                                        toolkit.get_converter('convert_to_extras')]
         })
         return schema
 
     def show_package_schema(self):
         schema = super(DatasetapprovalPlugin, self).show_package_schema()
         schema.update({
-            'approval_state': [toolkit.get_converter('convert_from_extras')]
+            'publishing_status': [toolkit.get_converter('convert_from_extras')]
         })
         return schema
 
@@ -83,27 +108,57 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin, toolkit.DefaultDatasetForm)
     # IValidators
     def get_validators(self):
         return {
-            'state_validator': validation.state_validator,
+            'publishing_status_validator': validation.publishing_status_validator,
         }
 
     # IPackageController
+    def create(self, entity):
+        # if editor published the dataset it will be awalys private
+        if editor_publishing_dataset(entity.owner_org, toolkit.c.userobj):
+            entity.private = True
+        return entity
+
+    def edit(self, entity):
+        # if editor published the dataset it will be awalys private
+        if editor_publishing_dataset(entity.owner_org, toolkit.c.userobj):
+            entity.private = True
+        return entity
+
+
     def before_search(self, search_params):
-        include_approval_pending= search_params.get('include_approval_pending', False)
+        include_in_review = search_params.get('include_in_review', False)
         include_drafts = search_params.get('include_drafts', False)
 
-        if include_drafts:
-            # show pending dataset in user dashboard.
-            search_params.update({
-                'fq': "+creator_user_id:{0} ".format(c.userobj.id) + search_params.get('fq', '')
-            })
-        elif include_approval_pending: 
-            search_params.pop('include_approval_pending')
+        # View all review pending dataset in admin user dashboard. 
+        if include_in_review: 
+            search_params.pop('include_in_review', None)
             return search_params
-        else:
+
+        if include_drafts:
+            return search_params
+          
+        else: 
             search_params.update({
-                'fq': '!(approval_state:(pending OR rejected))' + search_params.get('fq', '')
+                'fq': '!(publishing_status:(draft OR in_review OR rejected))' + search_params.get('fq', '')
             })
         return search_params
+
+    # IPermissionLabels
+    def get_user_dataset_labels(self, user_obj):
+        labels = super(DatasetapprovalPlugin, self
+                       ).get_user_dataset_labels(user_obj)
+
+        dataset_approve_permission = False
+        if user_obj and user_obj.plugin_extras:
+            dataset_approve_permission = user_obj.plugin_extras.get('dataset_approve_permission', False)
+
+        if dataset_approve_permission:
+            labels = [x for x in labels if not x.startswith('member')]
+            orgs = toolkit.get_action(u'organization_list_for_user')(
+                {u'user': user_obj.id}, {u'permission': u'admin'})
+            labels.extend(u'member-%s' % o['id'] for o in orgs)
+        return labels
+
 
     # IBlueprint
     def get_blueprint(self):
