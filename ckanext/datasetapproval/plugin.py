@@ -127,17 +127,24 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin,
 
     def before_search(self, search_params):
         include_in_review = search_params.get('include_in_review', False)
+
+        if include_in_review:
+            search_params.pop('include_in_review', None)
+
         include_drafts = search_params.get('include_drafts', False)
 
-        # View all review pending dataset in admin user dashboard. 
-        if include_in_review: 
-            search_params.pop('include_in_review', None)
+        if toolkit.c.userobj:
+            user_is_syadmin = toolkit.c.userobj.sysadmin
+        else:
+            user_is_syadmin = False
+            
+        if user_is_syadmin:
             return search_params
-
-        if include_drafts:
+        elif include_in_review:
             return search_params
-          
-        else: 
+        elif include_drafts:
+            return search_params
+        else:   
             search_params.update({
                 'fq': '!(publishing_status:(draft OR in_review OR rejected))' + search_params.get('fq', '')
             })
@@ -148,15 +155,12 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin,
         labels = super(DatasetapprovalPlugin, self
                        ).get_user_dataset_labels(user_obj)
 
-        dataset_approve_permission = False
         if user_obj and user_obj.plugin_extras:
-            dataset_approve_permission = user_obj.plugin_extras.get('dataset_approve_permission', False)
-
-        if dataset_approve_permission:
-            labels = [x for x in labels if not x.startswith('member')]
-            orgs = toolkit.get_action(u'organization_list_for_user')(
-                {u'user': user_obj.id}, {u'permission': u'admin'})
-            labels.extend(u'member-%s' % o['id'] for o in orgs)
+            if user_obj.plugin_extras.get('has_approval_permission', False):
+                labels = [x for x in labels if not x.startswith('member')]
+                orgs = toolkit.get_action(u'organization_list_for_user')(
+                    {u'user': user_obj.id}, {u'permission': u'admin'})
+                labels.extend(u'member-%s' % o['id'] for o in orgs)
         return labels
 
 
