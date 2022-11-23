@@ -1,12 +1,16 @@
 
+import logging
 from ckan.logic.auth import get_package_object
 from ckan.plugins import toolkit as tk
 
-def package_show_with_approval (context, data_dict):
+log = logging.getLogger(__name__)
+
+@tk.auth_allow_anonymous_access
+def package_show_with_approval(context, data_dict):
     user = context.get('user')
     package = get_package_object(context, data_dict)
-    
-    if package.get('publishing_status') != 'approved':
+
+    if package.extras.get('publishing_status') in ['in_review', 'draft', 'rejected']:
         # Accessiable to within editors so that they can collabrate on the dataset
 
         try:

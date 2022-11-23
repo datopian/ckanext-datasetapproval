@@ -35,9 +35,9 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin,
         DefaultPermissionLabels, toolkit.DefaultDatasetForm):
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.IValidators)
+    plugins.implements(plugins.IAuthFunctions)
     plugins.implements(plugins.IActions)
     plugins.implements(plugins.IBlueprint)
-    plugins.implements(plugins.IAuthFunctions, inherit=True)
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.IPackageController, inherit=True)
     plugins.implements(plugins.ITemplateHelpers)
