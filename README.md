@@ -34,7 +34,14 @@ Note: if you're using `ckanext_scheming` extension, add new field to the schema 
      sudo service apache2 reload
 
 
-
+## Approval Flow for Dataset
+1. All publisher users can save datasets as drafts for later editing, while creating/updating datasets without publishing it to the public.
+2. Users with editor role in organization can create a dataset and submit it for approval.
+3. Organization admin receives the email notification when dataset is submitted for approval.
+4. Users with admin role in organization can reivew with approving or rejecting the dataset.
+5. If dataset is approved by admin, it will be published and visible to all users.
+6. If dataset is rejected, it will be visible to only editor and syasadmin users.
+5. If dataset is rejected, editor can edit the dataset and submit it for approval again.
 
 ## License
 

@@ -44,9 +44,9 @@ def dataset_review(id):
     # Pass extra params to user_object
     if toolkit.c.userobj.plugin_extras:
         toolkit.c.userobj.plugin_extras = toolkit.c.userobj.plugin_extras \
-                                    .update({'dataset_approve_permission': True})
+                                    .update({'has_approval_permission': True})
     else :
-        toolkit.c.userobj.plugin_extras = {'dataset_approve_permission': True}
+        toolkit.c.userobj.plugin_extras = {'has_approval_permission': True}
 
     context = {
         u'model': model,
