@@ -124,8 +124,7 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin,
             entity.private = True
         return entity
 
-
-    def before_search(self, search_params):
+    def before_dataset_search(self, search_params):
         include_in_review = search_params.get('include_in_review', False)
 
         if include_in_review:
@@ -134,11 +133,11 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin,
         include_drafts = search_params.get('include_drafts', False)
 
         if toolkit.c.userobj:
-            user_is_syadmin = toolkit.c.userobj.sysadmin
+            user_is_sysadmin = toolkit.c.userobj.sysadmin
         else:
-            user_is_syadmin = False
-            
-        if user_is_syadmin:
+            user_is_sysadmin = False
+
+        if user_is_sysadmin:
             return search_params
         elif include_in_review:
             return search_params
@@ -155,12 +154,14 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin,
         labels = super(DatasetapprovalPlugin, self
                        ).get_user_dataset_labels(user_obj)
 
-        if user_obj and user_obj.plugin_extras:
-            if user_obj.plugin_extras.get('has_approval_permission', False):
-                labels = [x for x in labels if not x.startswith('member')]
-                orgs = toolkit.get_action(u'organization_list_for_user')(
-                    {u'user': user_obj.id}, {u'permission': u'admin'})
-                labels.extend(u'member-%s' % o['id'] for o in orgs)
+        if user_obj.is_authenticated:
+            # Now it's safe to access user_obj.plugin_extras
+            if user_obj.plugin_extras:
+                if user_obj.plugin_extras.get('has_approval_permission', False):
+                    labels = [x for x in labels if not x.startswith('member')]
+                    orgs = toolkit.get_action(u'organization_list_for_user')(
+                        {u'user': user_obj.id}, {u'permission': u'admin'})
+                    labels.extend(u'member-%s' % o['id'] for o in orgs)
         return labels
 
 
