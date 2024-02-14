@@ -1,7 +1,7 @@
 import logging
 from functools import partial
 
-from flask import Blueprint
+from flask import Blueprint, url_for
 
 from ckan import model
 from ckan.lib import base
@@ -130,7 +130,23 @@ def _make_action(package_id, action='reject'):
     
     return toolkit.redirect_to(controller='dataset', action='read', id=package_id)
 
-approveBlueprint.add_url_rule('/dataset-publish/<id>/approve', view_func=approve)
-approveBlueprint.add_url_rule('/dataset-publish/<id>/reject', view_func=reject)
+def terms_and_conditions():
+    if toolkit.request.method == 'POST':
+        if 'agree' in toolkit.request.form:
+            # Redirect to the "Add Metadata" step if agreed
+            return toolkit.redirect_to(url_for('dataset.new'))
+        else:
+            # Handle the case where terms are not agreed upon
+            pass
+    # Render the terms and conditions page if GET request or terms not agreed
+    return base.render('package/snippets/terms_and_conditions.html', extra_vars={'pkg_dict': None})
+
+def send_to_review(pkg_dict):
+    return base.render('package/snippets/send_to_review.html', extra_vars={'pkg_dict': pkg_dict})
+    
+approveBlueprint.add_url_rule(u'/dataset-publish/<id>/approve', view_func=approve)
+approveBlueprint.add_url_rule(u'/dataset-publish/<id>/reject', view_func=reject)
 approveBlueprint.add_url_rule(u'/user/<id>/dataset_review', view_func=dataset_review)
+approveBlueprint.add_url_rule(u'/dataset/terms', view_func=terms_and_conditions)
+approveBlueprint.add_url_rule(u'/dataset/<id>/review', view_func=send_to_review)
 

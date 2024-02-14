@@ -3,3 +3,283 @@
     justify-content: flex-end;
     flex-direction: row;
 }
+
+/* Main CSS */
+
+.main {
+    background-color: #fff;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+}
+
+.row {
+    background-image: none;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    border: none;
+    border-radius: 0px;
+    border-color: #fff;
+    outline: none;
+    box-shadow: none;
+}
+
+.primary .col-md-9 .col-xs-12 {
+    margin: 0 auto;
+     /* Makes it take up full width of the parrent container*/
+    width: 100%;
+    min-width: 1056px;
+    justify-content: center;
+    align-content: center;
+    display: flex;
+}
+
+.primary .col-md-9 .col-xs-12 > .module {
+    margin: 0 auto;
+    min-width: 1056px;
+    width: 133%;
+}
+
+/* Package create/edit CSS */
+
+/* Package create/edit section */
+.package-create {
+    padding: 40px;
+    border-width: 3px;
+    border-color: #006D84; 
+    border-style: solid;
+    border-radius: 10px;
+}
+
+
+/* Stages CSS */
+
+.stages {
+    display: flex;
+    flex: row;
+    margin: 0;
+    list-style: none;
+    color: #aeaeae;
+    counter-reset: stage;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    padding: 0;
+  }
+  .stages::after {
+    display: block;
+    clear: both;
+    content: "";
+  }
+  .stages li {
+    line-height: 27px;
+    counter-increment: stage;
+    width: 50%;
+    background-color: #EDEDED;
+    float: left;
+    padding: 10px 20px;
+    position: relative;
+    z-index: 0;
+  }
+  .stages li::before {
+    border-radius: 14px;
+    content: counter(stage);
+    display: inline-block;
+    width: 27px;
+    height: 27px;
+    margin-right: 5px;
+    font-weight: bold;
+    text-align: center;
+    color: #fff;
+    background-color: #aeaeae;
+    z-index: 1;
+  }
+  .stages li::after {
+    left: 0;
+    border: solid rgba(237, 237, 237, 0);
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+    border-top-color: #EDEDED;
+    border-bottom-color: #EDEDED;
+    border-width: 29px;
+    top: 50%;
+    margin-top: -29px;
+    margin-left: -30px;
+  }
+  
+  .stages li.last {
+    position: relative;
+    right: -1px;
+  }
+  
+  .stages li.last,
+  .stages li.last .highlight {
+    border-radius: 0 3px 0 0;
+  }
+  
+  .stages li.first:after {
+    content: none;
+    border: none;
+  }
+  
+  .stages li.active:after {
+    border-color: rgba(140, 198, 138, 0);
+    border-top-color: #8cc68a;
+    border-bottom-color: #8cc68a;
+  }
+  
+  .stages li.complete:after {
+    border-color: rgba(197, 226, 196, 0);
+    border-top-color: #c5e2c4;
+    border-bottom-color: #c5e2c4;
+  }
+  
+  .stages.stage-3 li.complete:first-child:after {
+    content: none;
+  }
+  
+  .stages li.active,
+  .stages li.complete {
+    background: none;
+  }
+  
+  .stages li.active:before {
+    color: #8cc68a;
+    background: #fff;
+  }
+  
+  .stages li.complete:before {
+    color: #c5e2c4;
+    background: #eef6ed;
+  }
+  
+  .stages li .highlight {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    padding: 10px 52px;
+    border: none;
+    text-align: left;
+    text-decoration: none;
+    line-height: 27px;
+    z-index: -1;
+  }
+  
+  .stages li.active .highlight {
+    color: #fff;
+    background: #8cc68a;
+  }
+  
+  .stages li.complete .highlight {
+    color: #eef6ed;
+    background: #c5e2c4;
+  }
+
+/* Terms and conditions CSS */
+.terms-and-conditions-page {
+  padding: 40px;
+  border-width: 3px;
+  border-color: #006D84; 
+  border-style: solid;
+  border-radius: 10px;
+}
+
+.terms-and-conditions-content h1 {
+  color: #2c3e50;
+  font-size: 28px;
+}
+
+.terms-and-conditions-content p {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  letter-spacing: 0em;
+  text-align: left;
+  font-family: Calibri;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0em;
+  text-align: left;
+}
+
+.form-group {
+  display: block;
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  font-size: 18px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  width: Fixed (845px)
+  height: Hug (112px)
+  top: 445px
+  left: 514px
+  gap: 24px
+}
+
+.checkbox label input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  font-family: Calibri;
+  font-size: 12px;
+  font-weight: 100;
+  line-height: 20px;
+  letter-spacing: 0em;
+  text-align: left;
+}
+
+.terms-and-conditions-page .form-actions {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+}
+
+.terms-and-conditions-page .form-actions .btn {
+  margin-right: 10px;
+
+}
+
+/* Resource create/edit CSS */
+/* Resource form buttons */
+
+.resource-form-buttons {
+  /* there are four buttons in the resource form */
+  /* the first button should be aligned left and other buttons should be aligned rigght*/
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.resource-form-buttons-left {
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+  margin-top: 20px;
+  margin-left: 10px;
+}
+
+.resource-form-buttons-right {
+  display: flex;
+  flex-direction: row;
+  justify-content: right;
+  margin-top: 20px;
+}

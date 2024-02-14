@@ -124,7 +124,7 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin,
             entity.private = True
         return entity
 
-    def before_dataset_search(self, search_params):
+    def before_search(self, search_params):
         include_in_review = search_params.get('include_in_review', False)
 
         if include_in_review:
@@ -137,16 +137,21 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin,
         else:
             user_is_sysadmin = False
 
-        if user_is_sysadmin:
-            return search_params
-        elif include_in_review:
-            return search_params
-        elif include_drafts:
-            return search_params
-        else:   
-            search_params.update({
-                'fq': '!(publishing_status:(draft OR in_review OR rejected))' + search_params.get('fq', '')
-            })
+        if include_in_review and user_is_sysadmin:
+            additional_fq = '(publishing_status:in_review)'
+            existing_fq = search_params.get('fq', '')
+            search_params['fq'] = f"{existing_fq} {additional_fq}".strip()  
+
+        # if user_is_syadmin:
+        #     return search_params
+        # elif include_in_review:
+        #     return search_params
+        # elif include_drafts:
+        #     return search_params
+        # else:   
+        #     search_params.update({
+        #         'fq': '!(publishing_status:(draft OR in_review OR rejected))' + search_params.get('fq', '')
+        #     })
         return search_params
 
     # IPermissionLabels
