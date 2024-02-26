@@ -73,21 +73,26 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin,
         schema = super(DatasetapprovalPlugin, self).create_package_schema()
         schema.update({
             'publishing_status': [toolkit.get_validator('publishing_status_validator'),
-                                        toolkit.get_converter('convert_to_extras')]
+                                  toolkit.get_converter('convert_to_extras')],
+            'terms_agreed': [toolkit.get_validator('boolean_validator'), 
+                             toolkit.get_converter('convert_to_extras')]
         })
         return schema
     def update_package_schema(self):
         schema = super(DatasetapprovalPlugin, self).update_package_schema()
         schema.update({
             'publishing_status': [toolkit.get_validator('publishing_status_validator'), 
-                                        toolkit.get_converter('convert_to_extras')]
+                                        toolkit.get_converter('convert_to_extras')],
+            'terms_agreed': [toolkit.get_validator('boolean_validator'), 
+                             toolkit.get_converter('convert_to_extras')]
         })
         return schema
 
     def show_package_schema(self):
         schema = super(DatasetapprovalPlugin, self).show_package_schema()
         schema.update({
-            'publishing_status': [toolkit.get_converter('convert_from_extras')]
+            'publishing_status': [toolkit.get_converter('convert_from_extras')],
+            'terms_agreed': [toolkit.get_converter('convert_from_extras')]
         })
         return schema
 
@@ -124,9 +129,9 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin,
             entity.private = True
         return entity
 
-    def before_search(self, search_params):
+    def before_dataset_search(self, search_params):
+        print(search_params)
         include_in_review = search_params.get('include_in_review', False)
-
         if include_in_review:
             search_params.pop('include_in_review', None)
 
@@ -138,21 +143,30 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin,
             user_is_sysadmin = False
 
         if include_in_review and user_is_sysadmin:
-            additional_fq = '(publishing_status:in_review)'
+            additional_fq = ''
             existing_fq = search_params.get('fq', '')
             search_params['fq'] = f"{existing_fq} {additional_fq}".strip()  
 
-        # if user_is_syadmin:
-        #     return search_params
-        # elif include_in_review:
-        #     return search_params
-        # elif include_drafts:
-        #     return search_params
-        # else:   
-        #     search_params.update({
-        #         'fq': '!(publishing_status:(draft OR in_review OR rejected))' + search_params.get('fq', '')
-        #     })
+        if user_is_sysadmin:
+            search_params.pop('creator_user_id', None)
+            print('==============user_is_sysadmin====================')
+            print(search_params)
+            return search_params
+        elif include_in_review:
+            print('==============include_in_review====================')
+            print(search_params)
+            return search_params
+        elif include_drafts:
+            print('==============include_drafts====================')
+            print(search_params)
+            return search_params
+        else:   
+            search_params.update({
+                'fq': '!(publishing_status:(draft OR in_review OR rejected))' + search_params.get('fq', '')
+            })
+        
         return search_params
+
 
     # IPermissionLabels
     def get_user_dataset_labels(self, user_obj):

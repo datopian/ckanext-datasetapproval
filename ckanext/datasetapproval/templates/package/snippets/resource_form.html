@@ -3,6 +3,7 @@
 {% set data = data or {} %}
 {% set errors = errors or {} %}
 {% set action = form_action or h.url_for(dataset_type ~ '_resource.new', id=pkg_name) %}
+{% set dataset_id = pkg_name %}
 
 
 <form id="resource-edit" class="dataset-form dataset-resource-form" method="post" action="{{ action }}" data-module="basic-form resource-form" enctype="multipart/form-data">
@@ -86,11 +87,11 @@
             <button class="btn btn-default" name="save" value="go-dataset" type="submit">{{ _('Previous: Add metadata') }}</button>
           {% endblock %}
         {% endif %}
-        {% if stage %}
-          {% block review_button %}
-            <button class="btn btn-primary" name="save" value="go-dataset-complete" type="submit">{{ _('Next: Send to review') }}</button>
-          {% endblock %}
-        {% endif %}
+        {% block review_button %}
+          {% if stage %}
+              <a class="btn btn-primary" href="/dataset/{{ dataset_id}}/review">{% block previous_button_text %}{{ _('Next: Send to review') }}{% endblock %}</a>
+          {% endif %}
+        {% endblock %}
         {% block save_draft_button %}
         <button class="btn btn-default" name="save" type="submit"  data-module="form-save" data-module-type="resource-draft">{% block save_draft_button_text %}{{ _('Save as draft') }}{% endblock %}</button>
         {% endblock %}

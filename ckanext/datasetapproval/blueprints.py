@@ -1,7 +1,7 @@
 import logging
 from functools import partial
 
-from flask import Blueprint, url_for
+from flask import Blueprint, redirect, url_for
 
 from ckan import model
 from ckan.lib import base
@@ -13,9 +13,16 @@ from ckan.authz import users_role_for_group_or_org
 from ckan.lib.mailer import MailerException
 from ckanext.datasetapproval.mailer import mail_package_approve_reject_notification_to_editors
 from ckan.views.dataset import url_with_params
+import ckan.logic as logic
+import ckan.lib.navl.dictization_functions as dict_fns
+
 
 log = logging.getLogger()
 
+tuplize_dict = logic.tuplize_dict
+clean_dict = logic.clean_dict
+parse_params = logic.parse_params
+flatten_to_string_key = logic.flatten_to_string_key
 
 approveBlueprint = Blueprint('approval', __name__,)
 
@@ -99,6 +106,7 @@ def dataset_review(id):
 
     return base.render(u'user/dashboard_review.html', extra_vars)
 
+
 def _raise_not_authz_or_not_pending(id):
     dataset_dict = toolkit.get_action('package_show') \
                     ({u'ignore_auth': True}, {'id': id})
@@ -130,6 +138,7 @@ def _make_action(package_id, action='reject'):
     
     return toolkit.redirect_to(controller='dataset', action='read', id=package_id)
 
+
 def terms_and_conditions():
     if toolkit.request.method == 'POST':
         if 'agree' in toolkit.request.form:
@@ -141,12 +150,51 @@ def terms_and_conditions():
     # Render the terms and conditions page if GET request or terms not agreed
     return base.render('package/snippets/terms_and_conditions.html', extra_vars={'pkg_dict': None})
 
-def send_to_review(pkg_dict):
-    return base.render('package/snippets/send_to_review.html', extra_vars={'pkg_dict': pkg_dict})
-    
+
+def request_review(id):
+    # Log the received ID for debugging
+    print(f'+++++++++++++{id}++++++++++++++')
+
+    # Retrieve the context for CKAN's logic functions
+    context = {'model': model, 'session': model.Session,
+               'user': toolkit.c.user or toolkit.c.author}
+
+    # Use the package_show action to retrieve the dataset by ID or name
+    try:
+        # 'id' here can be the name or the id of the dataset
+        package_dict = toolkit.get_action('package_show')(context, {'id': id})
+    except toolkit.ObjectNotFound:
+        toolkit.abort(404, toolkit._('Dataset not found'))
+    except toolkit.NotAuthorized:
+        toolkit.abort(401, toolkit._('Unauthorized to read dataset'))
+
+    # Pass the entire dataset object to the template
+    # Ensure 'package_dict' contains all necessary keys, including 'name'
+    return base.render('package/snippets/review_request.html', extra_vars={'pkg_dict': package_dict, 'data': package_dict}) 
+
+@approveBlueprint.route('/submit_review', methods=['POST'])
+def submit_review():
+    context = {'model': model, 'session': model.Session,
+               'user': toolkit.c.user or toolkit.c.author}
+    if toolkit.request.method == 'POST':
+        dataset_name = toolkit.request.form['dataset_name']
+        print(f'+++++++++++++{dataset_name}++++++++++++++')
+        data_dict = toolkit.get_action(u'package_show')(context, {u'id': dataset_name})
+        print(f'+++++++++++++{data_dict}++++++++++++++')
+        data_dict['publishing_status'] = u'in_review'
+        toolkit.get_action(u'package_update')(
+            context,
+            data_dict
+        )
+
+        id=data_dict['id']
+        return h.redirect_to(u'{}.read'.format('dataset'), id=id)
+
+
 approveBlueprint.add_url_rule(u'/dataset-publish/<id>/approve', view_func=approve)
 approveBlueprint.add_url_rule(u'/dataset-publish/<id>/reject', view_func=reject)
 approveBlueprint.add_url_rule(u'/user/<id>/dataset_review', view_func=dataset_review)
 approveBlueprint.add_url_rule(u'/dataset/terms', view_func=terms_and_conditions)
-approveBlueprint.add_url_rule(u'/dataset/<id>/review', view_func=send_to_review)
+approveBlueprint.add_url_rule(u'/dataset/<id>/review', view_func=request_review)
+# approveBlueprint.add_url_rule(u'/dataset/submit_review', view_func=submit_review, methods=['POST'])
 
