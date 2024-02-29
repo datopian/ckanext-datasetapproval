@@ -85,12 +85,12 @@
         <div class="resource-form-buttons-right">
           {% if stage %}
             {% block previous_button %}
-              <button class="btn btn-default" name="save" value="go-dataset" type="submit">{{ _('Previous: Add metadata') }}</button>
+              <a class="btn btn-default" href="/dataset/edit/{{ dataset_id}}">{{ _('Previous: Add metadata') }}</a>
             {% endblock %}
           {% endif %}
           {% block review_button %}
             {% if stage %}
-                <a class="btn btn-primary" href="/dataset/{{ dataset_id}}/review">{% block previous_button_text %}{{ _('Next: Send to review') }}{% endblock %}</a>
+              <a class="btn btn-primary" href="/dataset/{{ dataset_id}}/review">{% block previous_button_text %}{{ _('Next: Send to review') }}{% endblock %}</a>
             {% endif %}
           {% endblock %}
           {% block save_draft_button %}
