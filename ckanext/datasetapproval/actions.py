@@ -13,6 +13,11 @@ log = logging.getLogger()
 
 @p.toolkit.chained_action
 @logic.side_effect_free
+def package_search(original_action, context, data_dict):
+    return original_action(context, data_dict)
+
+@p.toolkit.chained_action
+@logic.side_effect_free
 def package_show(up_func, context, data_dict):
     toolkit.check_access('package_show_with_approval', context, data_dict)
     return up_func(context, data_dict)

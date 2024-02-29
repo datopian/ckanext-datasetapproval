@@ -20,13 +20,3 @@
         {{ h.build_nav_icon(pkg.type ~ '.collaborators_read', _('Collaborators'), id=pkg.name, icon='users')}}
     {% endif %}
 {% endblock %}
-
-<!-- {% block terms_and_conditions %}
-    {% if not h.check_access('package_update', {'id': pkg.id}) %}
-        {% snippet 'package/snippets/terms_and_conditions.html', pkg=pkg %}
-    {% endif %}
-{% endblock %} -->
-
-<!-- {% block secondary_content %}
-    {% snippet 'package/snippets/info.html', pkg=pkg, hide_follow_button=true %}
-{% endblock %} -->

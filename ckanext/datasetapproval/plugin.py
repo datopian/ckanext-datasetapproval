@@ -130,8 +130,9 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin,
         return entity
 
     def before_dataset_search(self, search_params):
-        print(search_params)
+        print(f'========={search_params}============')
         include_in_review = search_params.get('include_in_review', False)
+        print(f'++++++++++++++{include_in_review}++++++++++++++ ')
         if include_in_review:
             search_params.pop('include_in_review', None)
 
@@ -145,22 +146,24 @@ class DatasetapprovalPlugin(plugins.SingletonPlugin,
         if include_in_review and user_is_sysadmin:
             additional_fq = ''
             existing_fq = search_params.get('fq', '')
-            search_params['fq'] = f"{existing_fq} {additional_fq}".strip()  
+            search_params['fq'] = f"{existing_fq} {additional_fq}".strip()
+
+        print(f'++++++++++++++{search_params}++++++++++++++ ')
 
         if user_is_sysadmin:
-            search_params.pop('creator_user_id', None)
-            print('==============user_is_sysadmin====================')
-            print(search_params)
+            search_params.pop('include_in_review', None)
+            # print('==============user_is_sysadmin====================')
+            print(f'-----------{search_params}-------------')
             return search_params
         elif include_in_review:
             print('==============include_in_review====================')
             print(search_params)
             return search_params
         elif include_drafts:
-            print('==============include_drafts====================')
-            print(search_params)
+            # print('==============include_drafts====================')
+            # print(search_params)
             return search_params
-        else:   
+        else:
             search_params.update({
                 'fq': '!(publishing_status:(draft OR in_review OR rejected))' + search_params.get('fq', '')
             })

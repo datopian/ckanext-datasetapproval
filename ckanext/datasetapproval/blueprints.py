@@ -84,11 +84,14 @@ def dataset_review(id):
         'start': limit * (page - 1),
         'fq': 'publishing_status:in_review',
         'include_in_review': True,
-        'include_private': True
+        'include_private': True,
+        'include_drafts': True
         }
 
     in_review_datasets = toolkit.get_action('package_search')(context,
                                                data_dict=search_dict)
+    
+    print(search_dict)
 
     extra_vars['user_dict'].update({
         'datasets' : in_review_datasets['results'],
@@ -140,7 +143,9 @@ def _make_action(package_id, action='reject'):
 
 
 def terms_and_conditions():
+    data_dict = {}
     if toolkit.request.method == 'POST':
+        data_dict['terms_agreed'] = True
         if 'agree' in toolkit.request.form:
             # Redirect to the "Add Metadata" step if agreed
             return toolkit.redirect_to(url_for('dataset.new'))
@@ -148,28 +153,21 @@ def terms_and_conditions():
             # Handle the case where terms are not agreed upon
             pass
     # Render the terms and conditions page if GET request or terms not agreed
-    return base.render('package/snippets/terms_and_conditions.html', extra_vars={'pkg_dict': None})
+    return base.render('package/snippets/terms_and_conditions.html', extra_vars={'pkg_dict': data_dict})
 
 
 def request_review(id):
-    # Log the received ID for debugging
-    print(f'+++++++++++++{id}++++++++++++++')
-
     # Retrieve the context for CKAN's logic functions
     context = {'model': model, 'session': model.Session,
                'user': toolkit.c.user or toolkit.c.author}
 
-    # Use the package_show action to retrieve the dataset by ID or name
     try:
-        # 'id' here can be the name or the id of the dataset
         package_dict = toolkit.get_action('package_show')(context, {'id': id})
     except toolkit.ObjectNotFound:
         toolkit.abort(404, toolkit._('Dataset not found'))
     except toolkit.NotAuthorized:
         toolkit.abort(401, toolkit._('Unauthorized to read dataset'))
 
-    # Pass the entire dataset object to the template
-    # Ensure 'package_dict' contains all necessary keys, including 'name'
     return base.render('package/snippets/review_request.html', extra_vars={'pkg_dict': package_dict, 'data': package_dict}) 
 
 @approveBlueprint.route('/submit_review', methods=['POST'])
@@ -178,9 +176,7 @@ def submit_review():
                'user': toolkit.c.user or toolkit.c.author}
     if toolkit.request.method == 'POST':
         dataset_name = toolkit.request.form['dataset_name']
-        print(f'+++++++++++++{dataset_name}++++++++++++++')
         data_dict = toolkit.get_action(u'package_show')(context, {u'id': dataset_name})
-        print(f'+++++++++++++{data_dict}++++++++++++++')
         data_dict['publishing_status'] = u'in_review'
         toolkit.get_action(u'package_update')(
             context,

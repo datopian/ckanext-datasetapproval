@@ -10,49 +10,32 @@
       {% snippet 'package/snippets/stages.html', stages=['complete', 'active', 'uncomplete', 'uncomplete'] %}
   #}
   {% set s1 = stages[0] if stages|length > 0 else 'active' %}
-  {% set s2 = stages[1] if stages|length > 1 else 'uncomplete' %}
-  {% set s3 = stages[2] if stages|length > 2 else 'uncomplete' %}
-  {% set s4 = stages[3] if stages|length > 3 else 'uncomplete' %}
+  {% set s2 = stages[1] if stages|length > 1 else 'complete' %}
+  {% set s3 = stages[2] if stages|length > 2 else 'complete' %}
+  {% set s4 = stages[3] if stages|length > 3 else 'complete' %}
   {% set dataset_type = dataset_type or h.default_package_type() %}
-  {% set terms_agreed = terms_agreed or False %}
 
 <ol class="stages custom-stages">
-  {% if not terms_agreed %}
+  {% if '/dataset/edit' not in request.path %}
     <li class="stage {{ s1 }}">
       <span class="highlight">{{ _('Terms and Conditions') }}</span>
-      {% if s1 == 'complete' %}
-        <span class="status-icon complete">✓</span>
-      {% elif s1 == 'active' %}
-        <span class="status-icon active">•</span>
-      {% endif %}
     </li>
+    <li class="spacer"></li>
   {% endif %}
   <li class="stage {{ s2 }}">
-    <span class="highlight">{{ h.humanize_entity_type('package', dataset_type, 'create label') or _('Create Dataset') }}</span>
-    {% if s2 == 'complete' %}
-      <span class="status-icon complete">✓</span>
-    {% elif s2 == 'active' %}
-      <span class="status-icon active">•</span>
+    {% if '/dataset/edit' not in request.path %}
+      <span class="highlight">{{ h.humanize_entity_type('package', dataset_type, 'create label') or _('Create dataset') }}</span>
+    {% else %}
+      <span class="highlight">{{ h.humanize_entity_type('package', dataset_type, 'create label') or _('Update dataset') }}</span>
     {% endif %}
   </li>
+  <li class="spacer"></li>
   <li class="stage {{ s3 }}">
     <span class="highlight">{{ _('Add data') }}</span>
-    {% if s3 == 'complete' %}
-      <span class="status-icon complete">✓</span>
-    {% elif s3 == 'active' %}
-      <span class="status-icon active">•</span>
-    {% endif %}
   </li>
+  <li class="spacer"></li>
   <li class="stage {{ s4 }} last">
     <span class="highlight">{{ _('Send to Review') }}</span>
-    {% if s4 == 'complete' %}
-      <span class="status-icon complete">✓</span>
-    {% elif s4 == 'active' %}
-      <span class="status-icon active">•</span>
-    {% endif %}
   </li>
 </ol>
-
-<!-- Print terms_agreed value-->
-{{ terms_agreed }}
   
