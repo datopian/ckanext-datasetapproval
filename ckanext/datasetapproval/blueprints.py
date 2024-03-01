@@ -147,8 +147,9 @@ def terms_and_conditions():
     if toolkit.request.method == 'POST':
         data_dict['terms_agreed'] = True
         if 'agree' in toolkit.request.form:
-            # Redirect to the "Add Metadata" step if agreed
-            return toolkit.redirect_to(url_for('dataset.new'))
+            # Redirect to the "Add Metadata" step if agreed and pass `terms_agreed` as True
+
+            return toolkit.redirect_to(url_for('dataset.new'), {'terms_agreed': True})
         else:
             # Handle the case where terms are not agreed upon
             pass
@@ -169,6 +170,7 @@ def request_review(id):
         toolkit.abort(401, toolkit._('Unauthorized to read dataset'))
 
     return base.render('package/snippets/review_request.html', extra_vars={'pkg_dict': package_dict, 'data': package_dict}) 
+
 
 @approveBlueprint.route('/submit_review', methods=['POST'])
 def submit_review():
@@ -192,5 +194,3 @@ approveBlueprint.add_url_rule(u'/dataset-publish/<id>/reject', view_func=reject)
 approveBlueprint.add_url_rule(u'/user/<id>/dataset_review', view_func=dataset_review)
 approveBlueprint.add_url_rule(u'/dataset/terms', view_func=terms_and_conditions)
 approveBlueprint.add_url_rule(u'/dataset/<id>/review', view_func=request_review)
-# approveBlueprint.add_url_rule(u'/dataset/submit_review', view_func=submit_review, methods=['POST'])
-
