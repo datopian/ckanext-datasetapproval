@@ -118,6 +118,17 @@ def _form_save_redirect(pkg_name: str,
     return h.redirect_to(url)
 
 
+def _get_package_type(id: str) -> str:
+    """
+    Given the id of a package this method will return the type of the
+    package, or 'dataset' if no type is currently set
+    """
+    pkg = model.Package.get(id)
+    if pkg:
+        return pkg.type or u'dataset'
+    return u'dataset'
+
+
 class CreateView(MethodView):
     def _is_save(self) -> bool:
         return u'save' in request.form
@@ -247,6 +258,7 @@ class CreateView(MethodView):
     def get(self,
             package_type: str,
             terms_agreed: Optional[bool] = None,
+            entry_point: Optional[str] = None,
             data: Optional[dict[str, Any]] = None,
             errors: Optional[dict[str, Any]] = None,
             error_summary: Optional[dict[str, Any]] = None) -> str:
@@ -303,6 +315,12 @@ class CreateView(MethodView):
         _setup_template_variables(context, {}, package_type=package_type)
 
         new_template = _get_pkg_template(u'new_template', package_type)
+
+        if entry_point == "terms":
+            num_stages = 4
+        else:
+            num_stages = 3
+
         if terms_agreed is not None:
             return base.render(
                 new_template,
@@ -311,7 +329,8 @@ class CreateView(MethodView):
                     u'form_snippet': form_snippet,
                     u'dataset_type': package_type,
                     u'resources_json': resources_json,
-                    u'errors_json': errors_json
+                    u'errors_json': errors_json,
+                    u'num_stages': num_stages
                 }
             )
         else:
@@ -319,4 +338,154 @@ class CreateView(MethodView):
             return h.redirect_to(u'/dataset/terms')
 
 
+class EditView(MethodView):
+    def _prepare(self) -> Context:
+        context = cast(Context, {
+            u'model': model,
+            u'session': model.Session,
+            u'user': current_user.name,
+            u'auth_user_obj': current_user,
+            u'save': u'save' in request.form
+        })
+        return context
+
+    def post(self, package_type: str, id: str) -> Union[Response, str]:
+        context = self._prepare()
+        package_type = _get_package_type(id) or package_type
+        log.debug(u'Package save request name: %s POST: %r', id, request.form)
+        try:
+            data_dict = clean_dict(
+                dict_fns.unflatten(tuplize_dict(parse_params(request.form)))
+            )
+        except dict_fns.DataError:
+            return base.abort(400, _(u'Integrity Error'))
+        try:
+            if u'_ckan_phase' in data_dict:
+                # we allow partial updates to not destroy existing resources
+                context[u'allow_partial_update'] = True
+                if u'tag_string' in data_dict:
+                    data_dict[u'tags'] = _tag_string_to_list(
+                        data_dict[u'tag_string']
+                    )
+                del data_dict[u'_ckan_phase']
+                del data_dict[u'save']
+            data_dict['id'] = id
+            pkg_dict = get_action(u'package_update')(context, data_dict)
+
+            return _form_save_redirect(
+                pkg_dict[u'name'], u'edit', package_type=package_type
+            )
+        except NotAuthorized:
+            return base.abort(403, _(u'Unauthorized to read package %s') % id)
+        except NotFound:
+            return base.abort(404, _(u'Dataset not found'))
+        except SearchIndexError as e:
+            try:
+                exc_str = str(repr(e.args))
+            except Exception:  # We don't like bare excepts
+                exc_str = str(str(e))
+            return base.abort(
+                500,
+                _(u'Unable to update search index.') + exc_str
+            )
+        except ValidationError as e:
+            errors = e.error_dict
+            error_summary = e.error_summary
+            return self.get(package_type, id, data_dict, errors, error_summary)
+
+    def get(self,
+            package_type: str,
+            id: str,
+            data: Optional[dict[str, Any]] = None,
+            errors: Optional[dict[str, Any]] = None,
+            error_summary: Optional[dict[str, Any]] = None
+            ) -> Union[Response, str]:
+        context = self._prepare()
+        package_type = _get_package_type(id) or package_type
+        try:
+            view_context = context.copy()
+            view_context['for_view'] = True
+            pkg_dict = get_action(u'package_show')(
+                view_context, {u'id': id})
+            context[u'for_edit'] = True
+            old_data = get_action(u'package_show')(context, {u'id': id})
+            # old data is from the database and data is passed from the
+            # user if there is a validation error. Use users data if there.
+            if data:
+                old_data.update(data)
+            data = old_data
+        except (NotFound, NotAuthorized):
+            return base.abort(404, _(u'Dataset not found'))
+        assert data is not None
+        # are we doing a multiphase add?
+        if data.get(u'state', u'').startswith(u'draft'):
+            g.form_action = h.url_for(u'{}.new'.format(package_type))
+            g.form_style = u'new'
+
+            return CreateView().get(
+                package_type,
+                data=data,
+                errors=errors,
+                error_summary=error_summary
+            )
+
+        pkg = context.get(u"package")
+        resources_json = h.json.dumps(data.get(u'resources', []))
+        user = current_user.name
+        try:
+            check_access(u'package_update', context)
+        except NotAuthorized:
+            return base.abort(
+                403,
+                _(u'User %r not authorized to edit %s') % (user, id)
+            )
+        # convert tags if not supplied in data
+        if data and not data.get(u'tag_string'):
+            data[u'tag_string'] = u', '.join(
+                h.dict_list_reduce(pkg_dict.get(u'tags', {}), u'name')
+            )
+        errors = errors or {}
+        form_snippet = _get_pkg_template(
+            u'package_form', package_type=package_type
+        )
+
+
+        form_vars: dict[str, Any] = {
+            u'data': data,
+            u'errors': errors,
+            u'error_summary': error_summary,
+            u'action': u'edit',
+            u'dataset_type': package_type,
+            u'form_style': u'edit'
+        }
+        errors_json = h.json.dumps(errors)
+
+        # TODO: remove
+        g.pkg = pkg
+        g.resources_json = resources_json
+        g.errors_json = errors_json
+
+        _setup_template_variables(
+            context, {u'id': id}, package_type=package_type
+        )
+
+        # we have already completed stage 1
+        form_vars[u'stage'] = [u'active']
+        if data.get(u'state', u'').startswith(u'draft'):
+            form_vars[u'stage'] = [u'active', u'complete']
+
+        edit_template = _get_pkg_template(u'edit_template', package_type)
+        return base.render(
+            edit_template,
+            extra_vars={
+                u'form_vars': form_vars,
+                u'dataset_type': package_type,
+                u'pkg_dict': pkg_dict,
+                u'pkg': pkg,
+                u'resources_json': resources_json,
+                u'form_snippet': form_snippet,
+                u'errors_json': errors_json
+            }
+        )
+    
 sigma2_dataset.add_url_rule(u'/new', view_func=CreateView.as_view(str(u'new')))
