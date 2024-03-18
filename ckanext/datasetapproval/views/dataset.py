@@ -181,7 +181,7 @@ class CreateView(MethodView):
                     pkg_dict = get_action(u'package_update')(
                         context, data_dict
                     )
-
+                    print(pkg_dict)
                     # redirect to add dataset resources
                     url = h.url_for(
                         u'{}_resource.new'.format(package_type),
@@ -198,6 +198,7 @@ class CreateView(MethodView):
 
             data_dict[u'type'] = package_type
             pkg_dict = get_action(u'package_create')(context, data_dict)
+            print(pkg_dict)
 
             create_on_ui_requires_resources = config.get(
                 'ckan.dataset.create_on_ui_requires_resources'
@@ -216,11 +217,12 @@ class CreateView(MethodView):
                     cast(Context, dict(context, allow_state_change=True)),
                     dict(pkg_dict, state=u'active')
                 )
+                print(pkg_dict)
                 return h.redirect_to(
                     u'{}.read'.format(package_type),
                     id=pkg_dict["id"]
                 )
-
+            print(pkg_dict)
             return _form_save_redirect(
                 pkg_dict[u'name'], u'new', package_type=package_type
             )
@@ -371,7 +373,7 @@ class EditView(MethodView):
                 del data_dict[u'save']
             data_dict['id'] = id
             pkg_dict = get_action(u'package_update')(context, data_dict)
-
+            print(pkg_dict)
             return _form_save_redirect(
                 pkg_dict[u'name'], u'edit', package_type=package_type
             )
@@ -488,4 +490,8 @@ class EditView(MethodView):
             }
         )
     
+
 sigma2_dataset.add_url_rule(u'/new', view_func=CreateView.as_view(str(u'new')))
+sigma2_dataset.add_url_rule(
+        u'/edit/<id>', view_func=EditView.as_view(str(u'edit'))
+    )
