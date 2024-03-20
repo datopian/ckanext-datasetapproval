@@ -15,27 +15,23 @@
   {% set s4 = stages[3] if stages|length > 3 else 'complete' %}
   {% set dataset_type = dataset_type or h.default_package_type() %}
 
-<ol class="stages custom-stages">
+<ol class="stages">
   {% if '/dataset/edit' not in request.path %}
     <li class="stage {{ s1 }}">
       <span class="highlight">{{ _('Terms and Conditions') }}</span>
     </li>
-    <li class="spacer"></li>
   {% endif %}
   <li class="stage {{ s2 }}">
     {% if '/dataset/edit' not in request.path %}
-      <span class="highlight">{{ h.humanize_entity_type('package', dataset_type, 'create label') or _('Create dataset') }}</span>
+    <span class="highlight">{{ h.humanize_entity_type('package', dataset_type, 'create label') or _('Create dataset') }}</span>
     {% else %}
-      <span class="highlight">{{ h.humanize_entity_type('package', dataset_type, 'create label') or _('Update dataset') }}</span>
+    <span class="highlight">{{ h.humanize_entity_type('package', dataset_type, 'create label') or _('Update dataset') }}</span>
     {% endif %}
   </li>
-  <li class="spacer"></li>
   <li class="stage {{ s3 }}">
     <span class="highlight">{{ _('Add data') }}</span>
   </li>
-  <li class="spacer"></li>
-  <li class="stage {{ s4 }} last">
+  <li class="stage {{ s4 }}">
     <span class="highlight">{{ _('Send to Review') }}</span>
   </li>
 </ol>
-  
