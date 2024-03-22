@@ -17,9 +17,13 @@
 
 <ol class="stages">
   {% if '/dataset/edit' not in request.path %}
-    <li class="stage {{ s1 }}">
-      <span class="highlight">{{ _('Terms and Conditions') }}</span>
-    </li>
+    {% if  '/resource/new' not in request.path %}
+      {% if '/review' not in request.path %}
+        <li class="stage {{ s1 }}">
+          <span class="highlight">{{ _('Terms and Conditions') }}</span>
+        </li>
+      {% endif %}
+    {% endif %}
   {% endif %}
   <li class="stage {{ s2 }}">
     {% if '/dataset/edit' not in request.path %}

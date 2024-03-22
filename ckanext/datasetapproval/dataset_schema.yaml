@@ -1,115 +1,86 @@
-cheming_version: 2
+scheming_version: 2
 dataset_type: dataset
 about: A reimplementation of the default CKAN dataset schema
 about_url: http://github.com/ckan/ckanext-scheming
 
 
 dataset_fields:
-
 - field_name: title
   label: Title
-  preset: multiple_text
+  preset: title
   form_placeholder: eg. A descriptive title
-  form_snippet: multiple_text.html
-  display_snippet: multiple_text.html
-  validators: not_empty unicode_safe
 
 - field_name: name
   label: URL
   preset: dataset_slug
   form_placeholder: eg. my-dataset
 
-- field_name: owner_org
-  label: Organization
-  preset: dataset_organization
-
-- field_name: tag_string
-  label: Keywords
-  preset: tag_string_autocomplete
-  form_placeholder: eg. economy, mental health, government
-
-- field_name: theme
-  label: Theme
-  preset: multiple_text
-  form_placeholder: eg. A descriptive title
-  form_snippet: multiple_text.html
-  display_snippet: multiple_text.html
-  validators: not_empty unicode_safe
-
-- field_name: subject
-  label: Subject
-  preset: multiple_text
-  form_placeholder: The iso topic category, eg. https://inspire.ec.europa.eu/metadata-codelist/TopicCategory
-  form_snippet: multiple_text.html
-  display_snippet: multiple_text.html
-  validators: not_empty unicode_safe
-
 - field_name: notes
   label: Description
   form_snippet: markdown.html
   form_placeholder: eg. Some useful notes about the data
-  validators: not_empty unicode_safe
+  help_text: This should be a detailed description of the dataset, its contents and its quality.
 
-- field_name: version
-  label: Version
-  validators: not_empty
-  form_placeholder: '1.0'
+- field_name: tag_string
+  label: Tags
+  preset: tag_string_autocomplete
+  form_placeholder: eg. economy, mental health, government
 
-- field_name: has_part
-  label: Has part
-  preset: multiple_text
-  validators: ignore_missing unicode_safe
-  form_snippet: multiple_text.html
-  display_snippet: multiple_text.html
+- field_name: license_id
+  label: License
+  form_snippet: license.html
+  help_text: License definitions and additional information can be found at http://opendefinition.org/
 
-- field_name: is_part_of
-  label: Is part of
-  preset: multiple_text
-  validators: ignore_missing unicode_safe
-  form_snippet: multiple_text.html
-  display_snippet: multiple_text.html
-
-- field_name: language
-  label: Language
-  validators: not_empty
-  preset: select
-  choices:
-  - value: en
-    label: English
-  - value: fr
-    label: French
-
-- field_name: frequency
-  label: Frequency
-  validators: ignore_missing
-  preset: select
-  choices:
-  - value: daily
-    label: Daily
-  - value: weekly
-    label: Weekly
-  - value: monthly
-    label: Monthly
-  - value: quorterly
-    label: Quorterly
-  - value: yearly
-    label: Yearly
-  - value: never
-    label: Never
-
-- field_name: conforms_to
-  label: Conforms to
-  form_snippet: text.html
-
-- field_name: provenance
-  label: Provenance
-  preset: json_object
+- field_name: owner_org
+  label: Organization
+  preset: dataset_organization
 
 - field_name: url
   label: Source
   form_placeholder: http://example.com/dataset.json
   display_property: foaf:homepage
   display_snippet: link.html
+
+- field_name: version
+  label: Version
+  validators: ignore_missing unicode_safe package_version_validator
+  form_placeholder: '1.0'
+
+- field_name: author
+  label: Author
+  form_placeholder: Joe Bloggs
+  display_property: dc:creator
+
+- field_name: author_email
+  label: Author Email
+  form_placeholder: joe@example.com
+  display_property: dc:creator
+  display_snippet: email.html
+  display_email_name_field: author
+
+- field_name: maintainer
+  label: Maintainer
+  form_placeholder: Joe Bloggs
+  display_property: dc:contributor
+
+- field_name: maintainer_email
+  label: Maintainer Email
+  form_placeholder: joe@example.com
+  display_property: dc:contributor
+  display_snippet: email.html
+  display_email_name_field: maintainer
+
+- field_name: publishing_status
+  label: Publishing Status
+  form_snippet: null
+  display_snippet: null
+  validators: ignore_missing publishing_status_validator
+
+- field_name: terms_agreed
+  label: Terms
+  form_snippet: null
+  display_snippet: null
+  validators: ignore_missing
 
 resource_fields:
 

@@ -90,7 +90,7 @@
           {% endif %}
           {% block review_button %}
             {% if stage %}
-              <a class="btn btn-primary" href="/dataset/{{ dataset_id}}/review">{% block previous_button_text %}{{ _('Next: Send to review') }}{% endblock %}</a>
+            <button class="btn btn-primary" name="save" value="go-review" type="submit">{{ _('Next: Send to review') }}</button>
             {% endif %}
           {% endblock %}
           {% block save_draft_button %}

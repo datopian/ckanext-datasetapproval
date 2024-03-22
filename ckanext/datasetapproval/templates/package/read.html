@@ -50,12 +50,17 @@
       <h1>
         {% block page_heading %}
           {{ h.dataset_display_name(pkg) }}
-          {% if pkg.state.startswith('draft') %}
-            [{{ _('Draft') }}]
-          {% endif %}
-          {% if pkg.state == 'deleted' %}
-            [{{ _('Deleted') }}]
-          {% endif %}
+        {% if c.pkg_dict.publishing_status =='draft' %}
+            {{ _('[Draft]') }}
+        {% elif c.pkg_dict.publishing_status == 'in_review' and in_review %}
+            {{ _('[Review requested]')  }}
+        {% elif c.pkg_dict.publishing_status == 'in_review' %}
+            {{ _('[Review Pending]')  }}
+        {% elif c.pkg_dict.publishing_status == 'rejected' %}
+            {{ _('[Rejected]')  }}
+        {% elif c.pkg_dict.state == 'deleted' %}
+            {{ _('[Deleted]') }}
+        {% endif %}
         {% endblock %}
       </h1>
       {% block package_notes %}
