@@ -181,21 +181,19 @@ class CreateView(MethodView):
                     pkg_dict = get_action(u'package_update')(
                         context, data_dict
                     )
-
-                    # redirect to add dataset resources
+                    # redirect to the same page again on "save draft"
                     if request.form[u'save'] == u'go-dataset-edit':
                         return h.redirect_to(
                             u'{}.edit'.format(package_type),
                             id=pkg_dict["id"]
                         )
-
+                    # redirect to add dataset resources
                     url = h.url_for(
                         u'{}_resource.new'.format(package_type),
                         id=pkg_dict[u'name']
                     )
                     return h.redirect_to(url)
                 # Make sure we don't index this dataset
-                print(f"{request.form[u'save']}++++++++++++++++++++++++++++++++++++++")
                 if request.form[u'save'] not in [
                     u'go-resource', u'go-metadata'
                 ]:
@@ -211,8 +209,16 @@ class CreateView(MethodView):
             )
             if ckan_phase:
                 if create_on_ui_requires_resources:
+                    # redirect to the same page again on "save draft"
+                    if request.form[u'save'] == u'go-dataset-edit':
+                        return h.redirect_to(
+                            u'{}.edit'.format(package_type),
+                            id=pkg_dict["id"]
+                        )
+                    
                     # redirect to add dataset resources if
                     # create_on_ui_requires_resources is set to true
+
                     url = h.url_for(
                         u'{}_resource.new'.format(package_type),
                         id=pkg_dict[u'name']
@@ -223,13 +229,19 @@ class CreateView(MethodView):
                     cast(Context, dict(context, allow_state_change=True)),
                     dict(pkg_dict, state=u'active')
                 )
+                # redirect to the same page again on "save draft"
+                if request.form[u'save'] == u'go-dataset-edit':
+                    return h.redirect_to(
+                        u'{}.edit'.format(package_type),
+                        id=pkg_dict["id"]
+                    )
+
                 return h.redirect_to(
                     u'{}.read'.format(package_type),
                     id=pkg_dict["id"]
                 )
             
-            print(f"{request.form[u'save']}====================================")
-            
+           
             return _form_save_redirect(
                 pkg_dict[u'name'], u'new', package_type=package_type
             )
