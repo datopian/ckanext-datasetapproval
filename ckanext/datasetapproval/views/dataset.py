@@ -183,12 +183,19 @@ class CreateView(MethodView):
                     )
 
                     # redirect to add dataset resources
+                    if request.form[u'save'] == u'go-dataset-edit':
+                        return h.redirect_to(
+                            u'{}.edit'.format(package_type),
+                            id=pkg_dict["id"]
+                        )
+
                     url = h.url_for(
                         u'{}_resource.new'.format(package_type),
                         id=pkg_dict[u'name']
                     )
                     return h.redirect_to(url)
                 # Make sure we don't index this dataset
+                print(f"{request.form[u'save']}++++++++++++++++++++++++++++++++++++++")
                 if request.form[u'save'] not in [
                     u'go-resource', u'go-metadata'
                 ]:
@@ -220,7 +227,9 @@ class CreateView(MethodView):
                     u'{}.read'.format(package_type),
                     id=pkg_dict["id"]
                 )
-
+            
+            print(f"{request.form[u'save']}====================================")
+            
             return _form_save_redirect(
                 pkg_dict[u'name'], u'new', package_type=package_type
             )

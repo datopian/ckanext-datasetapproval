@@ -51,7 +51,7 @@ then itself be extended to add/remove blocks of functionality. #}
           <button class="btn btn-primary" type="submit" name="save">{% block save_button_text %}{{ _('Next: Upload data') }}{% endblock %}</button>
         {% endblock %}
         {% block save_draft_button %}
-          <a class="btn btn-default" data-module="form-save" data-module-type="draft">{{ _('Save as Draft')}}</a>
+        <button class="btn btn-default" name="save" value="go-dataset-edit" type="submit">{{ _('Save as Draft')}}</button>
         {% endblock %}
       </div>
     {% endblock %}

@@ -184,7 +184,8 @@ def submit_review():
             context,
             data_dict
         )
-
+        if toolkit.request.form[u'save'] == u'go-resource':
+            return h.redirect_to(f'/dataset/{dataset_name}/resource/new')
         id=data_dict['id']
         return h.redirect_to(u'{}.read'.format('dataset'), id=id)
 
