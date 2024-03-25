@@ -251,12 +251,8 @@ class CreateView(MethodView):
             if resource_id:
                 data[u'id'] = resource_id
                 get_action(u'resource_update')(context, data)
-            else:
-                if save_action == u'go-review' and data[u'name']:
-                    get_action(u'resource_create')(context, data)
-                    return h.redirect_to(u'/dataset/{id}/review'.format(id=id))
-                else:
-                    return h.redirect_to(u'/dataset/{id}/review'.format(id=id))
+            elif data[u'name']:
+                get_action(u'resource_create')(context, data)
         except ValidationError as e:
             errors = e.error_dict
             error_summary = e.error_summary
@@ -285,6 +281,8 @@ class CreateView(MethodView):
         elif save_action == u'go-dataset-complete':
 
             return h.redirect_to(u'{}.read'.format(package_type), id=id)
+        elif save_action == u'go-review':
+                    return h.redirect_to(u'/dataset/{id}/review'.format(id=id))
         else:
             # add more resources
             return h.redirect_to(
