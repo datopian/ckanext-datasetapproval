@@ -8,7 +8,9 @@
 {% block stages %}
 {# An empty stages variable will not show the stages #}
 {% if stage %}
-  {{ h.snippet('package/snippets/stages.html', stages=['complete', 'complete', 'active', 'complete'], pkg_name=pkg_name, dataset_type=dataset_type) }}
+  {% if  '/resource/' not in request.path and '/edit' not in request.path %}
+    {{ h.snippet('package/snippets/stages.html', stages=['complete', 'complete', 'active', 'complete'], pkg_name=pkg_name, dataset_type=dataset_type) }}
+  {% endif %}
 {% endif %}
 {% endblock %}
 
@@ -84,9 +86,13 @@
         </div>  <!-- /resource-form-buttons-left -->
         <div class="resource-form-buttons-right">
           {% if stage %}
-            {% block previous_button %}
-              <a class="btn btn-default" href="/dataset/edit/{{ dataset_id}}">{{ _('Previous: Add metadata') }}</a>
-            {% endblock %}
+            {% if '/edit' not in request.path %}
+              {% if  '/resource/' in request.path %}
+                {% block previous_button %}
+                  <a class="btn btn-default" href="/dataset/edit/{{ dataset_id}}">{{ _('Previous: Add metadata') }}</a>
+                {% endblock %}
+              {% endif %}
+            {% endif %}
           {% endif %}
           {% block review_button %}
             {% if stage %}
@@ -94,7 +100,7 @@
             {% endif %}
           {% endblock %}
           {% block save_draft_button %}
-          <button class="btn btn-default" name="save" type="submit"  data-module="form-save" data-module-type="resource-draft">{% block save_draft_button_text %}{{ _('Save as draft') }}{% endblock %}</button>
+          <button class="btn btn-default" name="save" value="again" type="submit">{% block save_draft_button_text %}{{ _('Save as draft') }}{% endblock %}</button>
           {% endblock %}
         </div>  <!-- /resource-form-buttons-right -->
       </div>
