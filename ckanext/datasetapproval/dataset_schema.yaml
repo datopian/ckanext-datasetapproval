@@ -220,7 +220,7 @@ dataset_fields:
   label: Provenance
   preset: json_object
 
-- field_name: url
+- field_name: source
   label: Source
   form_placeholder: http://example.com/dataset.json
   display_property: foaf:homepage
@@ -307,6 +307,11 @@ dataset_fields:
   form_snippet: markdown.html
   form_placeholder: eg. Some useful notes about the data
   validators: not_empty unicode_safe
+
+- field_name: license_id
+  label: License
+  form_snippet: license.html
+  help_text: License definitions and additional information can be found at http://opendefinition.org/
 
 - field_name: availability
   label: Availability
